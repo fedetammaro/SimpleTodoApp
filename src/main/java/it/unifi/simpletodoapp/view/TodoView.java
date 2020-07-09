@@ -7,8 +7,18 @@ import it.unifi.simpletodoapp.model.Task;
 public class TodoView {
 
 	public void showAllTasks(List<Task> allTasks) {
-		// TODO Auto-generated method stub
 		
 	}
 
+	public void taskAdded(Task task) {
+		
+	}
+
+	public void taskError(String errorMessage) {
+		
+	}
+
+	public void taskDeleted(Task task) {
+		
+	}
 }
