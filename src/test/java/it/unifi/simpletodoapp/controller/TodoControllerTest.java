@@ -3,6 +3,8 @@ package it.unifi.simpletodoapp.controller;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
@@ -12,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.service.TodoService;
 import it.unifi.simpletodoapp.view.TodoView;
@@ -44,6 +47,7 @@ public class TodoControllerTest {
 		todoController.getAllTasks();
 		
 		// Verify phase
+		verify(todoService).getAllTasks();
 		verify(todoView).showAllTasks(tasks);
 	}
 	
@@ -112,5 +116,128 @@ public class TodoControllerTest {
 		inOrder.verify(todoService).findTaskById(task.getId());
 		inOrder.verify(todoView).taskError("Task with ID " + task.getId() + " has already been removed");
 		inOrder.verify(todoService, never()).deleteTask(task);
+	}
+	
+	@Test
+	public void testAllTagsRetrieval() {
+		// Setup phase
+		List<Tag> tags = new ArrayList<>();
+		when(todoService.getAllTags())
+			.thenReturn(tags);
+		
+		// Exercise phase
+		todoController.getAllTags();
+		
+		// Verify phase
+		verify(todoService).getAllTags();
+		verify(todoView).showAllTags(tags);
+	}
+	
+	@Test
+	public void testTagAdditionWithUniqueIdAndName() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(null);
+		
+		// Exercise phase
+		todoController.addTag(tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).saveTag(tag);
+		inOrder.verify(todoView).tagAdded(tag);
+	}
+	
+	@Test
+	public void testTagAdditionWithExistingId() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		Tag duplicatedTag = new Tag("1", "Free time");
+		when(todoService.findTagById(duplicatedTag.getId()))
+			.thenReturn(tag);
+		
+		// Exercise phase
+		todoController.addTag(duplicatedTag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagById(duplicatedTag.getId());
+		inOrder.verify(todoView).tagError("Cannot add tag with duplicated ID " + duplicatedTag.getId());
+		inOrder.verify(todoService, never()).saveTag(duplicatedTag);
+	}
+	
+	@Test
+	public void testTagAdditionWithExistingName() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		Tag duplicatedTag = new Tag("2", "Work");
+		when(todoService.findTagById(duplicatedTag.getId()))
+			.thenReturn(null);
+		when(todoService.getAllTags())
+			.thenReturn(Collections.singletonList(tag));
+		
+		// Exercise phase
+		todoController.addTag(duplicatedTag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagById(duplicatedTag.getId());
+		inOrder.verify(todoService).getAllTags();
+		inOrder.verify(todoView).tagError("Cannot add tag with duplicated name \"" + duplicatedTag.getName() + "\"");
+		inOrder.verify(todoService, never()).saveTag(duplicatedTag);
+	}
+	
+	@Test
+	public void testTagAdditionWithUniqueIdAndNameWithAlreadyPresentTags() {
+		// Setup phase
+		Tag tag = new Tag("3", "Housekeeping");
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(null);
+		when(todoService.getAllTags())
+			.thenReturn(Arrays.asList(
+					new Tag("1", "Work"),
+					new Tag("2", "Sport")
+					));
+		
+		// Exercise phase
+		todoController.addTag(tag);
+		
+		// Verify phase
+		verify(todoService).saveTag(tag);
+		verify(todoView).tagAdded(tag);
+	}
+	
+	@Test
+	public void testSuccessfulTagDeletion() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(tag);
+		
+		// Exercise phase
+		todoController.removeTag(tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).deleteTag(tag);
+		inOrder.verify(todoView).tagRemoved(tag);
+	}
+	
+	@Test
+	public void testTagDeletionWhenAlreadyDeleted() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(null);
+		
+		// Exercise phase
+		todoController.removeTag(tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagById(tag.getId());
+		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + " has already been removed");
+		inOrder.verify(todoService, never()).deleteTag(tag);
 	}
 }
