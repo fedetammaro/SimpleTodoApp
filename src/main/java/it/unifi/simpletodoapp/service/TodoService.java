@@ -44,11 +44,15 @@ public class TodoService {
 		// Currently not implemented
 	}
 
-	public List<Tag> findTagsByTask(String id) {
+	public List<Tag> findTagsByTaskId(String id) {
 		return Collections.emptyList();
 	}
 
 	public void removeTagFromTask(String taskId, String tagId) {
 		// Currently not implemented
+	}
+
+	public List<Task> findTasksByTagId(String id) {
+		return Collections.emptyList();
 	}
 }

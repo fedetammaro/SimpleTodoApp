@@ -73,14 +73,14 @@ public class TodoController {
 		if (!taskExists(task) || !tagExists(tag))
 			return;
 		
-		List<Tag> currentTags = todoService.findTagsByTask(task.getId());
+		List<Tag> currentTags = todoService.findTagsByTaskId(task.getId());
 		
 		if (currentTags.stream().anyMatch(t -> t.getId().equals(tag.getId()))) {
 			todoView.tagError("Tag with ID " + tag.getId() + 
 					" is already assigned to task with ID " + task.getId());
 		} else {
 			todoService.addTagToTask(task.getId(), tag.getId());
-			List<Tag> tags = todoService.findTagsByTask(task.getId());
+			List<Tag> tags = todoService.findTagsByTaskId(task.getId());
 			todoView.showTaskTags(tags);
 		}
 	}
@@ -89,16 +89,32 @@ public class TodoController {
 		if (!taskExists(task) || !tagExists(tag))
 			return;
 		
-		List<Tag> currentTags = todoService.findTagsByTask(task.getId());
+		List<Tag> currentTags = todoService.findTagsByTaskId(task.getId());
 		
 		if (currentTags.stream().anyMatch(t -> t.getId().equals(tag.getId()))) {
 			todoService.removeTagFromTask(task.getId(), tag.getId());
-			List<Tag> tags = todoService.findTagsByTask(task.getId());
+			List<Tag> tags = todoService.findTagsByTaskId(task.getId());
 			todoView.showTaskTags(tags);
 		} else {
 			todoView.tagError("No tag with ID " + tag.getId() + 
 					" assigned to task with ID " + task.getId());
 		}
+	}
+	
+	public void getTagsByTask(Task task) {
+		if (!taskExists(task))
+			return;
+		
+		List<Tag> tags = todoService.findTagsByTaskId(task.getId());
+		todoView.showTaskTags(tags);
+	}
+	
+	public void getTasksByTag(Tag tag) {
+		if (!tagExists(tag))
+			return;
+		
+		List<Task> tasks = todoService.findTasksByTagId(tag.getId());
+		todoView.showTagTasks(tasks);
 	}
 	
 	private boolean taskExists(Task task) {

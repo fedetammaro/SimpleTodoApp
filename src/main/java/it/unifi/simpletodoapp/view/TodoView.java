@@ -5,41 +5,16 @@ import java.util.List;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
-public class TodoView {
+public interface TodoView {
 
-	public void showAllTasks(List<Task> allTasks) {
-		// Currently not implemented
-	}
-
-	public void taskAdded(Task task) {
-		// Currently not implemented		
-	}
-
-	public void taskError(String errorMessage) {
-		// Currently not implemented
-	}
-
-	public void taskDeleted(Task task) {
-		// Currently not implemented
-	}
-
-	public void showAllTags(List<Tag> tags) {
-		// Currently not implemented
-	}
-
-	public void tagAdded(Tag tag) {
-		// Currently not implemented	
-	}
-
-	public void tagError(String string) {
-		// Currently not implemented
-	}
-
-	public void tagRemoved(Tag tag) {
-		// Currently not implemented
-	}
-
-	public void showTaskTags(List<Tag> tags) {
-		// Currently not implemented
-	}
+	public void showAllTasks(List<Task> allTasks);
+	public void taskAdded(Task task);
+	public void taskError(String errorMessage);
+	public void taskDeleted(Task task);
+	public void showAllTags(List<Tag> tags);
+	public void tagAdded(Tag tag);
+	public void tagError(String string);
+	public void tagRemoved(Tag tag);
+	public void showTaskTags(List<Tag> tags);
+	public void showTagTasks(List<Task> tasks);
 }
