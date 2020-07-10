@@ -38,4 +38,8 @@ public class TodoView {
 	public void tagRemoved(Tag tag) {
 		// Currently not implemented
 	}
+
+	public void showTaskTags(List<Tag> tags) {
+		// Currently not implemented
+	}
 }

@@ -237,7 +237,222 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagById(tag.getId());
-		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + " has already been removed");
+		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + 
+				" has already been removed");
 		inOrder.verify(todoService, never()).deleteTag(tag);
+	}
+	
+	@Test
+	public void testSuccessfulTagAdditionToTask() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(task);
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(tag);
+		when(todoService.findTagsByTask(task.getId()))
+			.thenReturn(Collections.<Tag>emptyList());
+		
+		// Exercise phase
+		todoController.addTagToTask(task, tag);
+		
+		// Verify phase
+		verify(todoService).addTagToTask(task.getId(), tag.getId());
+		verify(todoView).showTaskTags(Collections.<Tag>emptyList());
+	}
+	
+	@Test
+	public void testSuccessfulTagAdditionToTaskWithOtherTags() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag previousTag = new Tag ("1", "Work");
+		Tag tag = new Tag("2", "Important");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(task);
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(tag);
+		when(todoService.findTagsByTask(task.getId()))
+			.thenReturn(Collections.singletonList(previousTag))
+			.thenReturn(Arrays.asList(previousTag, tag));
+		
+		// Exercise phase
+		todoController.addTagToTask(task, tag);
+
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagsByTask(task.getId());
+		inOrder.verify(todoService).addTagToTask(task.getId(), tag.getId());
+		inOrder.verify(todoService).findTagsByTask(task.getId());
+		inOrder.verify(todoView).showTaskTags(Arrays.asList(previousTag, tag));
+	}
+	
+	@Test
+	public void testDuplicatedTagAdditionToTask() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(task);
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(tag);
+		when(todoService.findTagsByTask(task.getId()))
+			.thenReturn(Collections.singletonList(tag));
+		
+		// Exercise phase
+		todoController.addTagToTask(task, tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagsByTask(task.getId());
+		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + 
+				" is already assigned to task with ID " + task.getId());
+		inOrder.verify(todoService, never()).addTagToTask(task.getId(), tag.getId());
+	}
+	
+	@Test
+	public void testTagAdditionToTaskWhenTaskNonExistent() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(null);
+		
+		// Exercise phase
+		todoController.addTagToTask(task, tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTaskById(task.getId());
+		inOrder.verify(todoView).taskError("No task with ID " + task.getId());
+		inOrder.verifyNoMoreInteractions();
+	}
+	
+	@Test
+	public void testTagAdditionToTaskWhenTagNonExistent() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(task);
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(null);
+				
+		// Exercise phase
+		todoController.addTagToTask(task, tag);
+				
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagById(tag.getId());
+		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId());
+		inOrder.verifyNoMoreInteractions();	
+	}
+	
+	@Test
+	public void testTagRemovalFromTask() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(task);
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(tag);
+		when(todoService.findTagsByTask(task.getId()))
+			.thenReturn(Collections.singletonList(tag))
+			.thenReturn(Collections.<Tag>emptyList());
+		
+		// Exercise phase
+		todoController.removeTagFromTask(task, tag);
+		
+		// Verify phase
+		verify(todoService).removeTagFromTask(task.getId(), tag.getId());
+		verify(todoView).showTaskTags(Collections.<Tag>emptyList());
+	}
+	
+	@Test
+	public void testTagRemovalFromTaskWithOtherTags() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag previousTag = new Tag("1", "Work");
+		Tag tag = new Tag("2", "Important");
+		List<Tag> previousTags = Arrays.asList(previousTag, tag);
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(task);
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(tag);
+		when(todoService.findTagsByTask(task.getId()))
+			.thenReturn(previousTags)
+			.thenReturn(Collections.singletonList(previousTag));
+				
+		// Exercise phase
+		todoController.removeTagFromTask(task, tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagsByTask(task.getId());
+		inOrder.verify(todoService).findTagsByTask(task.getId());
+		inOrder.verify(todoView).showTaskTags(Collections.singletonList(previousTag));
+	}
+	
+	@Test
+	public void testTagRemovalFromTaskWhenTagNotAssignedToTask() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag previousTag = new Tag("1", "Work");
+		Tag tag = new Tag("2", "Important");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(task);
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(tag);
+		when(todoService.findTagsByTask(task.getId()))
+			.thenReturn(Collections.singletonList(previousTag));
+		
+		// Exercise phase
+		todoController.removeTagFromTask(task, tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagsByTask(task.getId());
+		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId() +
+				" assigned to task with ID " + task.getId());
+		inOrder.verifyNoMoreInteractions();
+	}
+	
+	@Test
+	public void testTagRemovalFromTaskWhenTaskNonExistent() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(null);
+		
+		// Exercise phase
+		todoController.removeTagFromTask(task, tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTaskById(task.getId());
+		inOrder.verify(todoView).taskError("No task with ID " + task.getId());
+		inOrder.verifyNoMoreInteractions();
+	}
+	
+	@Test
+	public void testTagRemovalFromTaskWhenTagNonExistent() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(todoService.findTaskById(task.getId()))
+			.thenReturn(task);
+		when(todoService.findTagById(tag.getId()))
+			.thenReturn(null);
+		
+		// Exercise phase
+		todoController.removeTagFromTask(task, tag);
+		
+		// Verify phase: we also verify the order of the invocations
+		InOrder inOrder = inOrder(todoService, todoView);
+		inOrder.verify(todoService).findTagById(tag.getId());
+		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId());
+		inOrder.verifyNoMoreInteractions();
 	}
 }
