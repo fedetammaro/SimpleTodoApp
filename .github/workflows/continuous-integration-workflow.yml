@@ -20,8 +20,9 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
         run: >
-          mvn -s settings.xml -B clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar
-          -Pjacoco coveralls:report -DrepoToken=$COVERALLS_TOKEN
+          mvn -s settings.xml -B clean org.jacoco:jacoco-maven-plugin:prepare-agent verify 
+          org.pitest:pitest-maven:mutationCoverage sonar:sonar -Pjacoco coveralls:report
+          -DrepoToken=$COVERALLS_TOKEN
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
