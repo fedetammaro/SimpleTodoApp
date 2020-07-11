@@ -7,4 +7,7 @@ import it.unifi.simpletodoapp.model.Task;
 public interface TaskRepository {
 
 	public List<Task> findAll();
+	public Task findById(String taskId);
+	public void save(Task task);
+	public void delete(Task task);
 }

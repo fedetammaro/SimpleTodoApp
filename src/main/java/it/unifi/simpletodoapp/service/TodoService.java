@@ -16,15 +16,21 @@ public class TodoService {
 	}
 	
 	public Task findTaskById(String id) {
-		return null;
+		return transactionManager.doTaskTransaction(taskRepository -> taskRepository.findById(id));
 	}
 
 	public void saveTask(Task task) {
-		// Currently not implemented
+		transactionManager.doTaskTransaction(taskRepository -> {
+			taskRepository.save(task);
+			return null;
+		});
 	}
 
 	public void deleteTask(Task task) {
-		// Currently not implemented
+		transactionManager.doTaskTransaction(taskRepository -> {
+			taskRepository.delete(task);
+			return null;
+		});
 	}
 
 	public List<Tag> getAllTags() {

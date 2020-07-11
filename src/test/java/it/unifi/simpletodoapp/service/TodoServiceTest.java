@@ -11,6 +11,7 @@ import static org.mockito.AdditionalAnswers.answer;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -41,7 +42,7 @@ public class TodoServiceTest {
 	}
 	
 	@Test
-	public void testServiceTasksRetrieval() {
+	public void testAllTasksRetrieval() {
 		// Setup phase
 		List<Task> tasks = Arrays.asList(
 				new Task("1", "Buy groceries"),
@@ -53,9 +54,59 @@ public class TodoServiceTest {
 		List<Task> retrievedTasks = todoService.getAllTasks();
 		
 		// Verify
-		verify(taskRepository).findAll();
-		verify(transactionManager).doTaskTransaction(any());
-		verifyNoMoreInteractions(taskRepository, transactionManager);
+		InOrder inOrder = inOrder(transactionManager, taskRepository);
+		inOrder.verify(transactionManager).doTaskTransaction(any());
+		inOrder.verify(taskRepository).findAll();
+		inOrder.verifyNoMoreInteractions();
+		
 		assertEquals(tasks, retrievedTasks);
+	}
+	
+	@Test
+	public void testFindTaskById() {
+		// Setup phase
+		Task task = new Task("1", "Buy groceries");
+		when(taskRepository.findById(task.getId()))
+			.thenReturn(task);
+		
+		// Exercise phase
+		Task retrievedTask = todoService.findTaskById(task.getId());
+		
+		// Verify
+		InOrder inOrder = inOrder(transactionManager, taskRepository);
+		inOrder.verify(transactionManager).doTaskTransaction(any());
+		inOrder.verify(taskRepository).findById(task.getId());
+		inOrder.verifyNoMoreInteractions();
+		assertEquals(task, retrievedTask);
+	}
+	
+	@Test
+	public void testSaveTask() {
+		// Setup phase
+		Task task = new Task("1", "Buy groceries");
+		
+		// Exercise phase
+		todoService.saveTask(task);
+		
+		// Verify
+		InOrder inOrder = inOrder(transactionManager, taskRepository);
+		inOrder.verify(transactionManager).doTaskTransaction(any());
+		inOrder.verify(taskRepository).save(task);
+		inOrder.verifyNoMoreInteractions();
+	}
+	
+	@Test
+	public void testDeleteTask() {
+		// Setup phase
+		Task task = new Task("1", "Buy groceries");
+		
+		// Exercise phase
+		todoService.deleteTask(task);
+		
+		// Verify
+		InOrder inOrder = inOrder(transactionManager, taskRepository);
+		inOrder.verify(transactionManager).doTaskTransaction(any());
+		inOrder.verify(taskRepository).delete(task);
+		inOrder.verifyNoMoreInteractions();
 	}
 }
