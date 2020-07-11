@@ -1,6 +1,5 @@
 package it.unifi.simpletodoapp.service;
 
-import java.util.Collections;
 import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
@@ -50,22 +49,33 @@ public class TodoService {
 	}
 
 	public void deleteTag(Tag tag) {
-		// Currently not implemented
+		transactionManager.doTagTransaction(tagRepository -> {
+			tagRepository.delete(tag);
+			return null;
+		});
 	}
 
 	public void addTagToTask(String taskId, String tagId) {
-		// Currently not implemented
+		transactionManager.doCompositeTransaction((taskRepository, tagRepository) -> {
+			taskRepository.addTagToTask(taskId, tagId);
+			tagRepository.addTaskToTag(tagId, taskId);
+			return null;
+		});
 	}
 
-	public List<Tag> findTagsByTaskId(String id) {
-		return Collections.emptyList();
+	public List<Tag> findTagsByTaskId(String taskId) {
+		return transactionManager.doTaskTransaction(taskRepository -> taskRepository.getTagsByTaskId(taskId));
 	}
 
 	public void removeTagFromTask(String taskId, String tagId) {
-		// Currently not implemented
+		transactionManager.doCompositeTransaction((taskRepository, tagRepository) -> {
+			taskRepository.removeTagFromTask(taskId, tagId);
+			tagRepository.removeTaskFromTag(tagId, taskId);
+			return null;
+		});
 	}
 
-	public List<Task> findTasksByTagId(String id) {
-		return Collections.emptyList();
+	public List<Task> findTasksByTagId(String tagId) {
+		return transactionManager.doTagTransaction(tagRepository -> tagRepository.getTasksByTagId(tagId));
 	}
 }
