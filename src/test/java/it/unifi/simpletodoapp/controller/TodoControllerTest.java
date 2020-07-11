@@ -65,6 +65,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).saveTask(task);
 		inOrder.verify(todoView).taskAdded(task);
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -81,8 +82,9 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTaskById(duplicatedTask.getId());
+		inOrder.verify(todoService, never()).saveTask(any());
 		inOrder.verify(todoView).taskError("Cannot add task with duplicated ID " + duplicatedTask.getId());
-		inOrder.verify(todoService, never()).saveTask(duplicatedTask);
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -99,6 +101,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).deleteTask(task);
 		inOrder.verify(todoView).taskDeleted(task);
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -114,8 +117,9 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTaskById(task.getId());
+		inOrder.verify(todoService, never()).deleteTask(any());
 		inOrder.verify(todoView).taskError("Task with ID " + task.getId() + " has already been removed");
-		inOrder.verify(todoService, never()).deleteTask(task);
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -147,6 +151,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).saveTag(tag);
 		inOrder.verify(todoView).tagAdded(tag);
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -163,8 +168,9 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagById(duplicatedTag.getId());
+		inOrder.verify(todoService, never()).saveTag(any());
 		inOrder.verify(todoView).tagError("Cannot add tag with duplicated ID " + duplicatedTag.getId());
-		inOrder.verify(todoService, never()).saveTag(duplicatedTag);
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -184,8 +190,9 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagById(duplicatedTag.getId());
 		inOrder.verify(todoService).getAllTags();
+		inOrder.verify(todoService, never()).saveTag(any());
 		inOrder.verify(todoView).tagError("Cannot add tag with duplicated name \"" + duplicatedTag.getName() + "\"");
-		inOrder.verify(todoService, never()).saveTag(duplicatedTag);
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -237,9 +244,10 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagById(tag.getId());
+		inOrder.verify(todoService, never()).deleteTag(any());
 		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + 
 				" has already been removed");
-		inOrder.verify(todoService, never()).deleteTag(tag);
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -285,6 +293,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoService).addTagToTask(task.getId(), tag.getId());
 		inOrder.verify(todoService).findTagsByTaskId(task.getId());
 		inOrder.verify(todoView).showTaskTags(Arrays.asList(previousTag, tag));
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -305,9 +314,10 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagsByTaskId(task.getId());
+		inOrder.verify(todoService, never()).addTagToTask(any(), any());
 		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + 
 				" is already assigned to task with ID " + task.getId());
-		inOrder.verify(todoService, never()).addTagToTask(task.getId(), tag.getId());
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -324,6 +334,7 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTaskById(task.getId());
+		inOrder.verify(todoService, never()).addTagToTask(any(), any());
 		inOrder.verify(todoView).taskError("No task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -344,6 +355,7 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagById(tag.getId());
+		inOrder.verify(todoService, never()).addTagToTask(any(), any());
 		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId());
 		inOrder.verifyNoMoreInteractions();	
 	}
@@ -390,8 +402,10 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagsByTaskId(task.getId());
+		inOrder.verify(todoService).removeTagFromTask(task.getId(), tag.getId());
 		inOrder.verify(todoService).findTagsByTaskId(task.getId());
 		inOrder.verify(todoView).showTaskTags(Collections.singletonList(previousTag));
+		inOrder.verifyNoMoreInteractions();
 	}
 	
 	@Test
@@ -413,6 +427,7 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagsByTaskId(task.getId());
+		inOrder.verify(todoService, never()).removeTagFromTask(any(), any());
 		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId() +
 				" assigned to task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
@@ -432,6 +447,7 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTaskById(task.getId());
+		inOrder.verify(todoService, never()).removeTagFromTask(any(), any());
 		inOrder.verify(todoView).taskError("No task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -452,6 +468,7 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagById(tag.getId());
+		inOrder.verify(todoService, never()).removeTagFromTask(any(), any());
 		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -486,6 +503,7 @@ public class TodoControllerTest {
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTaskById(task.getId());
+		inOrder.verify(todoView, never()).showTaskTags(any());
 		inOrder.verify(todoView).taskError("No task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -519,6 +537,7 @@ public class TodoControllerTest {
 		// Verify: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagById(tag.getId());
+		inOrder.verify(todoView, never()).showTagTasks(any());
 		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
