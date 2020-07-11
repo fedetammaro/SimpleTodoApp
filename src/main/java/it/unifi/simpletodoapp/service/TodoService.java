@@ -1,58 +1,81 @@
 package it.unifi.simpletodoapp.service;
 
-import java.util.Collections;
 import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
+import it.unifi.simpletodoapp.repository.TagRepository;
+import it.unifi.simpletodoapp.repository.TaskRepository;
+import it.unifi.simpletodoapp.repository.TransactionManager;
 
 public class TodoService {
+	private TransactionManager transactionManager;
 
 	public List<Task> getAllTasks() {
-		return Collections.emptyList();
+		return transactionManager.doTaskTransaction(TaskRepository::findAll);
 	}
-	
-	public Task findTaskById(String id) {
-		return null;
+
+	public Task findTaskById(String tagId) {
+		return transactionManager.doTaskTransaction(taskRepository -> taskRepository.findById(tagId));
 	}
 
 	public void saveTask(Task task) {
-		// Currently not implemented
+		transactionManager.doTaskTransaction(taskRepository -> {
+			taskRepository.save(task);
+			return null;
+		});
 	}
 
 	public void deleteTask(Task task) {
-		// Currently not implemented
+		transactionManager.doTaskTransaction(taskRepository -> {
+			taskRepository.delete(task);
+			return null;
+		});
 	}
 
 	public List<Tag> getAllTags() {
-		return Collections.emptyList();
+		return transactionManager.doTagTransaction(TagRepository::findAll);
 	}
 
-	public Tag findTagById(String id) {
-		return null;
+	public Tag findTagById(String tagId) {
+		return transactionManager.doTagTransaction(tagRepository -> tagRepository.findById(tagId));
 	}
 
 	public void saveTag(Tag tag) {
-		// Currently not implemented
+		transactionManager.doTagTransaction(tagRepository -> {
+			tagRepository.save(tag);
+			return null;
+		});
 	}
 
 	public void deleteTag(Tag tag) {
-		// Currently not implemented
+		transactionManager.doTagTransaction(tagRepository -> {
+			tagRepository.delete(tag);
+			return null;
+		});
 	}
 
 	public void addTagToTask(String taskId, String tagId) {
-		// Currently not implemented
+		transactionManager.doCompositeTransaction((taskRepository, tagRepository) -> {
+			taskRepository.addTagToTask(taskId, tagId);
+			tagRepository.addTaskToTag(tagId, taskId);
+			return null;
+		});
 	}
 
-	public List<Tag> findTagsByTaskId(String id) {
-		return Collections.emptyList();
+	public List<Tag> findTagsByTaskId(String taskId) {
+		return transactionManager.doTaskTransaction(taskRepository -> taskRepository.getTagsByTaskId(taskId));
 	}
 
 	public void removeTagFromTask(String taskId, String tagId) {
-		// Currently not implemented
+		transactionManager.doCompositeTransaction((taskRepository, tagRepository) -> {
+			taskRepository.removeTagFromTask(taskId, tagId);
+			tagRepository.removeTaskFromTag(tagId, taskId);
+			return null;
+		});
 	}
 
-	public List<Task> findTasksByTagId(String id) {
-		return Collections.emptyList();
+	public List<Task> findTasksByTagId(String tagId) {
+		return transactionManager.doTagTransaction(tagRepository -> tagRepository.getTasksByTagId(tagId));
 	}
 }
