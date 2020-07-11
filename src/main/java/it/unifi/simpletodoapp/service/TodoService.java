@@ -5,11 +5,14 @@ import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
+import it.unifi.simpletodoapp.repository.TaskRepository;
+import it.unifi.simpletodoapp.repository.TransactionManager;
 
 public class TodoService {
+	private TransactionManager transactionManager;
 
 	public List<Task> getAllTasks() {
-		return Collections.emptyList();
+		return transactionManager.doTaskTransaction(TaskRepository::findAll);
 	}
 	
 	public Task findTaskById(String id) {

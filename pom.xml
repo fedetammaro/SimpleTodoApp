@@ -19,6 +19,7 @@
 		<sonar.version>3.7.0.1746</sonar.version>
 		<coveralls.version>4.3.0</coveralls.version>
 		<pitest.version>1.5.2</pitest.version>
+		<assertj.version>3.16.1</assertj.version>
 	</properties>
 
 	<dependencies>
@@ -36,6 +37,14 @@
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj.version}</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
