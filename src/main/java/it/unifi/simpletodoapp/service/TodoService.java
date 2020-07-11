@@ -5,6 +5,7 @@ import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
+import it.unifi.simpletodoapp.repository.TagRepository;
 import it.unifi.simpletodoapp.repository.TaskRepository;
 import it.unifi.simpletodoapp.repository.TransactionManager;
 
@@ -14,9 +15,9 @@ public class TodoService {
 	public List<Task> getAllTasks() {
 		return transactionManager.doTaskTransaction(TaskRepository::findAll);
 	}
-	
-	public Task findTaskById(String id) {
-		return transactionManager.doTaskTransaction(taskRepository -> taskRepository.findById(id));
+
+	public Task findTaskById(String tagId) {
+		return transactionManager.doTaskTransaction(taskRepository -> taskRepository.findById(tagId));
 	}
 
 	public void saveTask(Task task) {
@@ -34,15 +35,18 @@ public class TodoService {
 	}
 
 	public List<Tag> getAllTags() {
-		return Collections.emptyList();
+		return transactionManager.doTagTransaction(TagRepository::findAll);
 	}
 
-	public Tag findTagById(String id) {
-		return null;
+	public Tag findTagById(String tagId) {
+		return transactionManager.doTagTransaction(tagRepository -> tagRepository.findById(tagId));
 	}
 
 	public void saveTag(Tag tag) {
-		// Currently not implemented
+		transactionManager.doTagTransaction(tagRepository -> {
+			tagRepository.save(tag);
+			return null;
+		});
 	}
 
 	public void deleteTag(Tag tag) {
