@@ -18,6 +18,7 @@
 		<mockito.version>3.3.3</mockito.version>
 		<sonar.version>3.7.0.1746</sonar.version>
 		<coveralls.version>4.3.0</coveralls.version>
+		<pitest.version>1.5.2</pitest.version>
 	</properties>
 
 	<dependencies>
@@ -49,6 +50,21 @@
 					<groupId>org.eluder.coveralls</groupId>
 					<artifactId>coveralls-maven-plugin</artifactId>
 					<version>${coveralls.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.pitest</groupId>
+					<artifactId>pitest-maven</artifactId>
+					<version>${pitest.version}</version>
+					<configuration>
+						<excludedClasses>
+							<param>*Test</param>
+							<param>it.unifi.simpletodoapp.model.*</param>
+						</excludedClasses>
+						<mutators>
+							<mutator>DEFAULTS</mutator>
+						</mutators>
+						<mutationThreshold>100</mutationThreshold>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
