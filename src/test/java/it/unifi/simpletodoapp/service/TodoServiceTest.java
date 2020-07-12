@@ -215,13 +215,13 @@ public class TodoServiceTest {
 	@Test
 	public void testFindTagsByTaskId() {
 		// Setup phase
-		List<Tag> tags = Collections.singletonList(new Tag("1", "Work"));
+		List<String> tags = Collections.singletonList("1");
 		Task task = new Task("1", "Start using TDD");
 		when(taskRepository.getTagsByTaskId(task.getId()))
-			.thenReturn(tags);
+			.thenReturn(Collections.singletonList(task.getId()));
 		
 		// Exercise phase
-		List<Tag> retrievedTags = todoService.findTagsByTaskId(task.getId());
+		List<String> retrievedTags = todoService.findTagsByTaskId(task.getId());
 		
 		// Verify phase
 		InOrder inOrder = inOrder(transactionManager, taskRepository);

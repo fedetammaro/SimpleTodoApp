@@ -1,5 +1,7 @@
 package it.unifi.simpletodoapp.model;
 
+import java.util.Objects;
+
 public class Task {
 	private String id;
 	private String description;
@@ -15,5 +17,28 @@ public class Task {
 
 	public String getDescription() {
 		return description;
+	}
+	
+	@Override
+	public String toString() {
+		return "Task{id='" + id + "',description='" + description + "'}";
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, description);
+	}
+	
+	@Override
+	public boolean equals(Object object) {
+		if (object == this)
+			return true;
+		
+		if (object == null || object.getClass() != this.getClass())
+			return false;
+		
+		Task task = (Task) object;
+		
+		return task.getId().equals(id) && task.getDescription().equals(description);
 	}
 }
