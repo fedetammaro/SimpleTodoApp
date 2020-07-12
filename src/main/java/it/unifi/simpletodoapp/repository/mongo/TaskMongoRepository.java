@@ -10,6 +10,7 @@ import org.bson.Document;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.repository.TaskRepository;
@@ -61,14 +62,14 @@ public class TaskMongoRepository implements TaskRepository {
 
 	@Override
 	public void addTagToTask(String taskId, String tagId) {
-		// TODO Auto-generated method stub
-		
+		taskCollection.updateOne(Filters.eq("id", taskId), 
+				Updates.push("tags", tagId));
 	}
 
 	@Override
 	public void removeTagFromTask(String taskId, String tagId) {
-		// TODO Auto-generated method stub
-		
+		taskCollection.updateOne(Filters.eq("id", taskId), 
+				Updates.pull("tags", tagId));
 	}
 	
 	private Task createTaskFromMongoDocument(Document document) {

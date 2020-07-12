@@ -123,11 +123,11 @@ public class TaskMongoRepositoryTest {
 	
 	@Test
 	public void testGetTagsWhenTagListIsEmpty() {
-		// Setup
+		// Setup phase
 		Task task = new Task("1", "Start using TDD");
 		addTaskToDatabase(task, Collections.emptyList());
 		
-		// Exercise
+		// Exercise phase
 		List<String> retrievedTags = taskMongoRepository.getTagsByTaskId(task.getId());
 		
 		// Verify phase
@@ -136,15 +136,41 @@ public class TaskMongoRepositoryTest {
 	
 	@Test
 	public void testGetTagsWhenTagListIsNotEmpty() {
-		// Setup
+		// Setup phase
 		Task task = new Task("1", "Start using TDD");
 		addTaskToDatabase(task, Collections.singletonList("1"));
 		
-		// Exercise
+		// Exercise phase
 		List<String> retrievedTags = taskMongoRepository.getTagsByTaskId(task.getId());
 		
 		// Verify phase
 		assertThat(retrievedTags).isEqualTo(Collections.singletonList("1"));
+	}
+	
+	@Test
+	public void testAddTagToTask() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		addTaskToDatabase(task, Collections.emptyList());
+		
+		// Exercise phase
+		taskMongoRepository.addTagToTask(task.getId(), "1");
+		
+		// Verify phase
+		assertThat(taskMongoRepository.getTagsByTaskId(task.getId())).containsExactly("1");
+	}
+	
+	@Test
+	public void testRemoveTagFromTask() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		addTaskToDatabase(task, Collections.singletonList("1"));
+				
+		// Exercise phase
+		taskMongoRepository.removeTagFromTask(task.getId(), "1");
+				
+		// Verify phase
+		assertThat(taskMongoRepository.getTagsByTaskId(task.getId())).isEmpty();
 	}
 
 	private void addTaskToDatabase(Task task, List<String> tags) {
