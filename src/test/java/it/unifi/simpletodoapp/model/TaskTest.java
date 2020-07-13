@@ -17,38 +17,38 @@ public class TaskTest {
 
 	@Test
 	public void testTaskEqualityWithItself() {
-		assertThat(task.equals(task)).isTrue();
+		assertThat(task).isEqualTo(task);
 	}
 
 	@Test
 	public void testTaskEqualityWithNull() {
-		assertThat(task.equals(null)).isFalse();
+		assertThat(task).isNotEqualTo(null);
 	}
 
 	@Test
 	public void testTaskEqualityWithOtherClass() {
-		assertThat(task.equals("String object")).isFalse();
+		assertThat(task).isNotEqualTo("String object");
 	}
 
 	@Test
 	public void testTaskEqualityWithDifferentId() {
 		Task anotherTask = new Task("2", "Buy groceries");
-
-		assertThat(task.equals(anotherTask)).isFalse();
+		
+		assertThat(task).isNotEqualTo(anotherTask);
 	}
 
 	@Test
 	public void testTaskEqualityWithDifferentDescription() {
 		Task anotherTask = new Task("1", "Start using TDD");
-
-		assertThat(task.equals(anotherTask)).isFalse();
+		
+		assertThat(task).isNotEqualTo(anotherTask);
 	}
 
 	@Test
 	public void testTaskEqualityWithEqualTask() {
 		Task anotherTask = new Task("1", "Buy groceries");
-
-		assertThat(task.equals(anotherTask)).isTrue();	
+		
+		assertThat(task).isEqualTo(anotherTask);	
 	}
 
 	@Test
@@ -61,6 +61,6 @@ public class TaskTest {
 	@Test
 	public void testTaskToString() {
 		// Exercise and verify phases (no setup phase required)
-		assertThat(task.toString()).isEqualTo("Task{id='1',description='Buy groceries'}");
+		assertThat(task.toString()).hasToString("Task{id='1',description='Buy groceries'}");
 	}
 }
