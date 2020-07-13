@@ -50,73 +50,63 @@ public class TodoSwingView extends JFrame implements TodoView {
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
 		tabbedPane.setName("tabbedPane");
 		
-		JPanel tasks_panel = new JPanel();
-		tasks_panel.setName("tasks_panel");
-		tabbedPane.addTab("Tasks", null, tasks_panel, null);
+		JPanel tasksPanel = new JPanel();
+		tasksPanel.setName("tasks_panel");
+		tabbedPane.addTab("Tasks", null, tasksPanel, null);
 		
-		JPanel tags_panel = new JPanel();
-		tags_panel.setName("tags_panel");
-		tabbedPane.addTab("Tags", null, tags_panel, null);
+		JPanel tagsPanel = new JPanel();
+		tagsPanel.setName("tags_panel");
+		tabbedPane.addTab("Tags", null, tagsPanel, null);
 	}
 
 	@Override
 	public void showAllTasks(List<Task> allTasks) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void taskAdded(Task task) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void taskError(String errorMessage) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void taskDeleted(Task task) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void showAllTags(List<Tag> tags) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void tagAdded(Tag tag) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void tagError(String string) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void tagRemoved(Tag tag) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void showTaskTags(List<Tag> tags) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 	@Override
 	public void showTagTasks(List<Task> tasks) {
-		// TODO Auto-generated method stub
-		
+		// Method not yet implemented
 	}
 
 }

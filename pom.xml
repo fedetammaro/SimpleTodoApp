@@ -99,6 +99,7 @@
 						<excludedClasses>
 							<param>*Test</param>
 							<param>it.unifi.simpletodoapp.model.*</param>
+							<param>it.unifi.simpletodoapp.view.*</param>
 						</excludedClasses>
 						<excludedTestClasses>
 							<!-- Excluding UI tests since it can't use xvfb and always fails -->
