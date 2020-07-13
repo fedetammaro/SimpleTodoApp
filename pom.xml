@@ -22,6 +22,8 @@
 		<assertj.version>3.16.1</assertj.version>
 		<mongoserver.version>1.33.0</mongoserver.version>
 		<mongodriver.version>3.12.6</mongodriver.version>
+		<logback.version>1.2.3</logback.version>
+		<assertj-swing.version>3.9.2</assertj-swing.version>
 	</properties>
 
 	<dependencies>
@@ -63,9 +65,17 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.2.3</version>
+			<version>${logback.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.assertj/assertj-swing-junit -->
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-swing-junit</artifactId>
+			<version>${assertj-swing.version}</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
