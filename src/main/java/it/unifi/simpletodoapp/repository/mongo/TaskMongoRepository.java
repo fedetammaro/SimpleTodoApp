@@ -16,6 +16,9 @@ import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.repository.TaskRepository;
 
 public class TaskMongoRepository implements TaskRepository {
+	private static final String ID = "id";
+	private static final String DESCRIPTION = "description";
+	private static final String TAGS = "tags";
 	private MongoCollection<Document> taskCollection;
 
 	public TaskMongoRepository(MongoClient mongoClient, String dbName, String dbCollection) {
@@ -33,7 +36,7 @@ public class TaskMongoRepository implements TaskRepository {
 
 	@Override
 	public Task findById(String taskId) {
-		Document document = taskCollection.find(Filters.eq("id", taskId)).first();
+		Document document = taskCollection.find(Filters.eq(ID, taskId)).first();
 		
 		if (document != null)
 			return createTaskFromMongoDocument(document);
@@ -44,35 +47,35 @@ public class TaskMongoRepository implements TaskRepository {
 	@Override
 	public void save(Task task) {
 		taskCollection.insertOne(new Document()
-				.append("id", task.getId())
-				.append("description", task.getDescription())
-				.append("tags", Collections.emptyList()));		
+				.append(ID, task.getId())
+				.append(DESCRIPTION, task.getDescription())
+				.append(TAGS, Collections.emptyList()));		
 	}
 
 	@Override
 	public void delete(Task task) {
-		taskCollection.deleteOne(Filters.eq("id", task.getId()));
+		taskCollection.deleteOne(Filters.eq(ID, task.getId()));
 	}
 
 	@Override
 	public List<String> getTagsByTaskId(String taskId) {
-		return taskCollection.find(Filters.eq("id", taskId)).first().getList("tags", String.class);
+		return taskCollection.find(Filters.eq(ID, taskId)).first().getList(TAGS, String.class);
 		
 	}
 
 	@Override
 	public void addTagToTask(String taskId, String tagId) {
-		taskCollection.updateOne(Filters.eq("id", taskId), 
-				Updates.push("tags", tagId));
+		taskCollection.updateOne(Filters.eq(ID, taskId), 
+				Updates.push(TAGS, tagId));
 	}
 
 	@Override
 	public void removeTagFromTask(String taskId, String tagId) {
-		taskCollection.updateOne(Filters.eq("id", taskId), 
-				Updates.pull("tags", tagId));
+		taskCollection.updateOne(Filters.eq(ID, taskId), 
+				Updates.pull(TAGS, tagId));
 	}
 	
 	private Task createTaskFromMongoDocument(Document document) {
-		return new Task(document.getString("id"), document.getString("description"));
+		return new Task(document.getString(ID), document.getString(DESCRIPTION));
 	}
 }

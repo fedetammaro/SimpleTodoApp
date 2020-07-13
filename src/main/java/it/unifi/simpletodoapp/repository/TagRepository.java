@@ -3,7 +3,6 @@ package it.unifi.simpletodoapp.repository;
 import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
-import it.unifi.simpletodoapp.model.Task;
 
 public interface TagRepository {
 
