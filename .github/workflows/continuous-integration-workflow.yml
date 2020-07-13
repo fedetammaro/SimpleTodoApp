@@ -20,11 +20,9 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
-        uses: GabrielBB/xvfb-action@v1.2
-        with:
-          run: >
-            mvn -s settings.xml -B clean verify org.pitest:pitest-maven:mutationCoverage
-            sonar:sonar coveralls:report -DrepoToken=$COVERALLS_TOKEN -Pjacoco
+        run: >
+          xvfb-run -a mvn -s settings.xml -B clean verify org.pitest:pitest-maven:mutationCoverage
+          sonar:sonar coveralls:report -DrepoToken=$COVERALLS_TOKEN -Pjacoco
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
