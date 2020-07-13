@@ -260,7 +260,7 @@ public class TodoControllerTest {
 		when(todoService.findTagById(tag.getId()))
 			.thenReturn(tag);
 		when(todoService.findTagsByTaskId(task.getId()))
-			.thenReturn(Collections.<Tag>emptyList());
+			.thenReturn(Collections.<String>emptyList());
 		
 		// Exercise phase
 		todoController.addTagToTask(task, tag);
@@ -280,9 +280,11 @@ public class TodoControllerTest {
 			.thenReturn(task);
 		when(todoService.findTagById(tag.getId()))
 			.thenReturn(tag);
+		when(todoService.findTagById(previousTag.getId()))
+			.thenReturn(previousTag);
 		when(todoService.findTagsByTaskId(task.getId()))
-			.thenReturn(Collections.singletonList(previousTag))
-			.thenReturn(Arrays.asList(previousTag, tag));
+			.thenReturn(Collections.singletonList(previousTag.getId()))
+			.thenReturn(Arrays.asList(previousTag.getId(), tag.getId()));
 		
 		// Exercise phase
 		todoController.addTagToTask(task, tag);
@@ -306,7 +308,7 @@ public class TodoControllerTest {
 		when(todoService.findTagById(tag.getId()))
 			.thenReturn(tag);
 		when(todoService.findTagsByTaskId(task.getId()))
-			.thenReturn(Collections.singletonList(tag));
+			.thenReturn(Collections.singletonList(tag.getId()));
 		
 		// Exercise phase
 		todoController.addTagToTask(task, tag);
@@ -370,8 +372,8 @@ public class TodoControllerTest {
 		when(todoService.findTagById(tag.getId()))
 			.thenReturn(tag);
 		when(todoService.findTagsByTaskId(task.getId()))
-			.thenReturn(Collections.singletonList(tag))
-			.thenReturn(Collections.<Tag>emptyList());
+			.thenReturn(Collections.singletonList(tag.getId()))
+			.thenReturn(Collections.<String>emptyList());
 		
 		// Exercise phase
 		todoController.removeTagFromTask(task, tag);
@@ -387,14 +389,16 @@ public class TodoControllerTest {
 		Task task = new Task("1", "Start using TDD");
 		Tag previousTag = new Tag("1", "Work");
 		Tag tag = new Tag("2", "Important");
-		List<Tag> previousTags = Arrays.asList(previousTag, tag);
+		List<String> previousTags = Arrays.asList(previousTag.getId(), tag.getId());
 		when(todoService.findTaskById(task.getId()))
 			.thenReturn(task);
 		when(todoService.findTagById(tag.getId()))
 			.thenReturn(tag);
+		when(todoService.findTagById(previousTag.getId()))
+			.thenReturn(previousTag);
 		when(todoService.findTagsByTaskId(task.getId()))
 			.thenReturn(previousTags)
-			.thenReturn(Collections.singletonList(previousTag));
+			.thenReturn(Collections.singletonList(previousTag.getId()));
 				
 		// Exercise phase
 		todoController.removeTagFromTask(task, tag);
@@ -403,7 +407,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagsByTaskId(task.getId());
 		inOrder.verify(todoService).removeTagFromTask(task.getId(), tag.getId());
-		inOrder.verify(todoService).findTagsByTaskId(task.getId());
+		inOrder.verify(todoService).findTagById(task.getId());
 		inOrder.verify(todoView).showTaskTags(Collections.singletonList(previousTag));
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -419,7 +423,7 @@ public class TodoControllerTest {
 		when(todoService.findTagById(tag.getId()))
 			.thenReturn(tag);
 		when(todoService.findTagsByTaskId(task.getId()))
-			.thenReturn(Collections.singletonList(previousTag));
+			.thenReturn(Collections.singletonList(previousTag.getId()));
 		
 		// Exercise phase
 		todoController.removeTagFromTask(task, tag);
@@ -480,14 +484,16 @@ public class TodoControllerTest {
 		when(todoService.findTaskById(task.getId()))
 			.thenReturn(task);
 		when(todoService.findTagsByTaskId(task.getId()))
-			.thenReturn(Collections.<Tag>emptyList());
+			.thenReturn(Collections.singletonList("1"));
+		when(todoService.findTagById("1"))
+			.thenReturn(new Tag("1", "Work"));
 		
 		// Exercise phase
 		todoController.getTagsByTask(task);
 		
 		// Verify phase
 		verify(todoService).findTagsByTaskId(task.getId());
-		verify(todoView).showTaskTags(Collections.<Tag>emptyList());
+		verify(todoView).showTaskTags(Collections.singletonList(new Tag("1", "Work")));
 	}
 	
 	@Test
@@ -515,14 +521,16 @@ public class TodoControllerTest {
 		when(todoService.findTagById(tag.getId()))
 			.thenReturn(tag);
 		when(todoService.findTasksByTagId(tag.getId()))
-			.thenReturn(Collections.<Task>emptyList());
+			.thenReturn(Collections.singletonList("1"));
+		when(todoService.findTaskById("1"))
+			.thenReturn(new Task("1", "Start using TDD"));
 		
 		// Exercise phase
 		todoController.getTasksByTag(tag);
 		
 		// Verify
 		verify(todoService).findTasksByTagId(tag.getId());
-		verify(todoView).showTagTasks(Collections.<Task>emptyList());
+		verify(todoView).showTagTasks(Collections.singletonList(new Task("1", "Start using TDD")));
 	}
 	
 	@Test

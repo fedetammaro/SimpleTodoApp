@@ -1,5 +1,6 @@
 package it.unifi.simpletodoapp.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
@@ -73,15 +74,14 @@ public class TodoController {
 		if (!taskExists(task) || !tagExists(tag))
 			return;
 		
-		List<Tag> currentTags = todoService.findTagsByTaskId(task.getId());
+		List<String> currentTags = todoService.findTagsByTaskId(task.getId());
 		
-		if (currentTags.stream().anyMatch(t -> t.getId().equals(tag.getId()))) {
+		if (currentTags.stream().anyMatch(t -> t.equals(tag.getId()))) {
 			todoView.tagError("Tag with ID " + tag.getId() + 
 					" is already assigned to task with ID " + task.getId());
 		} else {
 			todoService.addTagToTask(task.getId(), tag.getId());
-			List<Tag> tags = todoService.findTagsByTaskId(task.getId());
-			todoView.showTaskTags(tags);
+			todoView.showTaskTags(getTags(todoService.findTagsByTaskId(task.getId())));
 		}
 	}
 
@@ -89,12 +89,11 @@ public class TodoController {
 		if (!taskExists(task) || !tagExists(tag))
 			return;
 		
-		List<Tag> currentTags = todoService.findTagsByTaskId(task.getId());
+		List<String> currentTags = todoService.findTagsByTaskId(task.getId());
 		
-		if (currentTags.stream().anyMatch(t -> t.getId().equals(tag.getId()))) {
+		if (currentTags.stream().anyMatch(t -> t.equals(tag.getId()))) {
 			todoService.removeTagFromTask(task.getId(), tag.getId());
-			List<Tag> tags = todoService.findTagsByTaskId(task.getId());
-			todoView.showTaskTags(tags);
+			todoView.showTaskTags(getTags(todoService.findTagsByTaskId(task.getId())));
 		} else {
 			todoView.tagError("No tag with ID " + tag.getId() + 
 					" assigned to task with ID " + task.getId());
@@ -105,16 +104,16 @@ public class TodoController {
 		if (!taskExists(task))
 			return;
 		
-		List<Tag> tags = todoService.findTagsByTaskId(task.getId());
-		todoView.showTaskTags(tags);
+		List<String> tags = todoService.findTagsByTaskId(task.getId());
+		todoView.showTaskTags(getTags(tags));
 	}
 	
 	public void getTasksByTag(Tag tag) {
 		if (!tagExists(tag))
 			return;
 		
-		List<Task> tasks = todoService.findTasksByTagId(tag.getId());
-		todoView.showTagTasks(tasks);
+		List<String> tasks = todoService.findTasksByTagId(tag.getId());
+		todoView.showTagTasks(getTasks(tasks));
 	}
 	
 	private boolean taskExists(Task task) {
@@ -133,5 +132,25 @@ public class TodoController {
 		}
 		
 		return true;
+	}
+	
+	private List<Tag> getTags(List<String> tagIds) {
+		List<Tag> tags = new ArrayList<>();
+		
+		for (String tagId : tagIds) {
+			tags.add(todoService.findTagById(tagId));
+		}
+		
+		return tags;
+	}
+	
+	private List<Task> getTasks(List<String> taskIds) {
+		List<Task> tasks = new ArrayList<>();
+		
+		for (String taskId : taskIds) {
+			tasks.add(todoService.findTaskById(taskId));
+		}
+		
+		return tasks;
 	}
 }

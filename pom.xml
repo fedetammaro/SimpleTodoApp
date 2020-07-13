@@ -20,6 +20,8 @@
 		<coveralls.version>4.3.0</coveralls.version>
 		<pitest.version>1.5.2</pitest.version>
 		<assertj.version>3.16.1</assertj.version>
+		<mongoserver.version>1.33.0</mongoserver.version>
+		<mongodriver.version>3.12.6</mongodriver.version>
 	</properties>
 
 	<dependencies>
@@ -44,7 +46,26 @@
 			<version>${assertj.version}</version>
 			<scope>test</scope>
 		</dependency>
-
+		<!-- https://mvnrepository.com/artifact/de.bwaldvogel/mongo-java-server -->
+		<dependency>
+			<groupId>de.bwaldvogel</groupId>
+			<artifactId>mongo-java-server</artifactId>
+			<version>${mongoserver.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>${mongodriver.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.3</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
