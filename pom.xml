@@ -100,6 +100,10 @@
 							<param>*Test</param>
 							<param>it.unifi.simpletodoapp.model.*</param>
 						</excludedClasses>
+						<excludedTestClasses>
+							<!-- Excluding UI tests since it can't use xvfb and always fails -->
+							<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
+						</excludedTestClasses>
 						<mutators>
 							<mutator>DEFAULTS</mutator>
 						</mutators>
