@@ -75,5 +75,4 @@ public class TaskMongoRepository implements TaskRepository {
 	private Task createTaskFromMongoDocument(Document document) {
 		return new Task(document.getString("id"), document.getString("description"));
 	}
-
 }

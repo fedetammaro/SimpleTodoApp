@@ -484,14 +484,16 @@ public class TodoControllerTest {
 		when(todoService.findTaskById(task.getId()))
 			.thenReturn(task);
 		when(todoService.findTagsByTaskId(task.getId()))
-			.thenReturn(Collections.<String>emptyList());
+			.thenReturn(Collections.singletonList("1"));
+		when(todoService.findTagById("1"))
+			.thenReturn(new Tag("1", "Work"));
 		
 		// Exercise phase
 		todoController.getTagsByTask(task);
 		
 		// Verify phase
 		verify(todoService).findTagsByTaskId(task.getId());
-		verify(todoView).showTaskTags(Collections.<Tag>emptyList());
+		verify(todoView).showTaskTags(Collections.singletonList(new Tag("1", "Work")));
 	}
 	
 	@Test
@@ -519,14 +521,16 @@ public class TodoControllerTest {
 		when(todoService.findTagById(tag.getId()))
 			.thenReturn(tag);
 		when(todoService.findTasksByTagId(tag.getId()))
-			.thenReturn(Collections.<Task>emptyList());
+			.thenReturn(Collections.singletonList("1"));
+		when(todoService.findTaskById("1"))
+			.thenReturn(new Task("1", "Start using TDD"));
 		
 		// Exercise phase
 		todoController.getTasksByTag(tag);
 		
 		// Verify
 		verify(todoService).findTasksByTagId(tag.getId());
-		verify(todoView).showTagTasks(Collections.<Task>emptyList());
+		verify(todoView).showTagTasks(Collections.singletonList(new Task("1", "Start using TDD")));
 	}
 	
 	@Test

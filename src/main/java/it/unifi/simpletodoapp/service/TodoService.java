@@ -75,7 +75,7 @@ public class TodoService {
 		});
 	}
 
-	public List<Task> findTasksByTagId(String tagId) {
+	public List<String> findTasksByTagId(String tagId) {
 		return transactionManager.doTagTransaction(tagRepository -> tagRepository.getTasksByTagId(tagId));
 	}
 }

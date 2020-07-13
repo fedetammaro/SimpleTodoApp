@@ -112,8 +112,8 @@ public class TodoController {
 		if (!tagExists(tag))
 			return;
 		
-		List<Task> tasks = todoService.findTasksByTagId(tag.getId());
-		todoView.showTagTasks(tasks);
+		List<String> tasks = todoService.findTasksByTagId(tag.getId());
+		todoView.showTagTasks(getTasks(tasks));
 	}
 	
 	private boolean taskExists(Task task) {
@@ -142,5 +142,15 @@ public class TodoController {
 		}
 		
 		return tags;
+	}
+	
+	private List<Task> getTasks(List<String> taskIds) {
+		List<Task> tasks = new ArrayList<>();
+		
+		for (String taskId : taskIds) {
+			tasks.add(todoService.findTaskById(taskId));
+		}
+		
+		return tasks;
 	}
 }
