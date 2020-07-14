@@ -1,5 +1,7 @@
 package it.unifi.simpletodoapp.view.swing;
 
+import static javax.swing.SwingConstants.*;
+
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.util.List;
@@ -20,10 +22,13 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 
 import java.awt.Insets;
+
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JSeparator;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.JComboBox;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -40,13 +45,52 @@ public class TodoSwingView extends JFrame implements TodoView {
 	private JTextField taskDescriptionTextField;
 	private JTextField taskIdTextField;
 	private JButton btnAddTask;
-	private JList<Task> tasksTaskList;
+	private JList<TaskViewModel> tasksTaskList;
+	private TaskListModel taskListModel = new TaskListModel();
 	private JButton btnDeleteTask;
 	private JComboBox<Tag> tagComboBox;
 	private JButton btnAssignTag;
 	private JList<Tag> assignedTagsList;
 	private JButton btnRemoveTag;
+	
+	static final class TaskViewModel {
+		private Task task;
 
+		public TaskViewModel(Task task) {
+			this.task = task;
+		}
+
+		@Override
+		public String toString() {
+			return "#" + task.getId() + " - " + task.getDescription();
+		}
+
+		@Override
+		public boolean equals(Object object) {
+			if (object == this)
+				return true;
+			
+			if (object == null || object.getClass() != this.getClass())
+				return false;
+			
+			TaskViewModel taskViewModel = (TaskViewModel) object;
+			
+			return taskViewModel.task.equals(this.task);
+		}
+	}
+
+	static final class TaskListModel extends DefaultListModel<TaskViewModel> {
+		private static final long serialVersionUID = 1L;
+
+		public void addTask(Task task) {
+			addElement(new TaskViewModel(task));
+		}
+
+		public void removeTask(Task task) {
+			removeElement(new TaskViewModel(task));
+		}
+	}
+	
 	/**
 	 * Launch the application.
 	 */
@@ -77,7 +121,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		contentPane.setName("contentPane");
 		setContentPane(contentPane);
 
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
 		tabbedPane.setName("tabbedPane");
 
@@ -190,7 +234,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcTasksTaskListLabel.gridy = 0;
 		tasksLeftSubPanel.add(tasksTaskListLabel, gbcTasksTaskListLabel);
 
-		tasksTaskList = new JList<>();
+		tasksTaskList = new JList<>(taskListModel);
 		tasksTaskList.setName("tasksTaskList");
 		tasksTaskList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		GridBagConstraints gbcTasksTaskList = new GridBagConstraints();
@@ -217,14 +261,14 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcTasksRightSubPanel.gridx = 2;
 		gbcTasksRightSubPanel.gridy = 5;
 		tasksPanel.add(tasksRightSubPanel, gbcTasksRightSubPanel);
-		GridBagLayout gbl_tasksRightSubPanel = new GridBagLayout();
-		gbl_tasksRightSubPanel.columnWidths = new int[]{34, 34, 34, 34, 34, 34, 34, 34, 34, 34};
-		gbl_tasksRightSubPanel.rowHeights = new int[]{25, 25, 290, 25, 0};
-		gbl_tasksRightSubPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-		gbl_tasksRightSubPanel.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
-		tasksRightSubPanel.setLayout(gbl_tasksRightSubPanel);
+		GridBagLayout gblTasksRightSubPanel = new GridBagLayout();
+		gblTasksRightSubPanel.columnWidths = new int[]{34, 34, 34, 34, 34, 34, 34, 34, 34, 34};
+		gblTasksRightSubPanel.rowHeights = new int[]{25, 25, 290, 25, 0};
+		gblTasksRightSubPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+		gblTasksRightSubPanel.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		tasksRightSubPanel.setLayout(gblTasksRightSubPanel);
 
-		tagComboBox = new JComboBox<Tag>();
+		tagComboBox = new JComboBox<>();
 		tagComboBox.setEnabled(false);
 		tagComboBox.setName("tagComboBox");
 		GridBagConstraints gbcTagComboBox = new GridBagConstraints();
@@ -249,7 +293,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcBtnAssignTag.gridy = 1;
 		tasksRightSubPanel.add(btnAssignTag, gbcBtnAssignTag);
 
-		assignedTagsList = new JList<Tag>();
+		assignedTagsList = new JList<>();
 		assignedTagsList.setName("assignedTagsList");
 		assignedTagsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		GridBagConstraints gbcAssignedTagsList = new GridBagConstraints();
@@ -281,7 +325,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void taskAdded(Task task) {
-		// Method not yet implemented
+		taskListModel.addTask(task);
 	}
 
 	@Override

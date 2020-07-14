@@ -1,5 +1,6 @@
 package it.unifi.simpletodoapp.view.swing;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.assertj.swing.annotation.GUITest;
@@ -73,57 +74,67 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	}
 	
 	@Test @GUITest
-	public void testAddButtonDisabledUntilBothFieldsAreNotEmpty() {
+	public void testAddTaskButtonDisabledUntilBothFieldsAreNotEmpty() {
 		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
 		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
-		JButtonFixture addButton = tasksPanel.button("btnAddTask");
+		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
 		
 		idField.enterText("1");
-		addButton.requireDisabled();
+		addTaskButton.requireDisabled();
 		
 		idField.setText("");
 		descriptionField.setText("Buy groceries");
-		addButton.requireDisabled();
+		addTaskButton.requireDisabled();
 	}
 	
 	@Test @GUITest
 	public void testAddButtonDisabledWhenSpacesAreInput() {
 		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
 		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
-		JButtonFixture addButton = tasksPanel.button("btnAddTask");
+		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
 		
 		idField.enterText(" ");
 		descriptionField.enterText("Buy groceries");
-		addButton.requireDisabled();
+		addTaskButton.requireDisabled();
 		
 		idField.setText("");
 		descriptionField.setText("");
 		idField.enterText("1");
 		descriptionField.enterText(" ");
-		addButton.requireDisabled();
+		addTaskButton.requireDisabled();
 	}
 	
 	@Test @GUITest
-	public void testAddButtonEnabledWhenBothFieldsAreNotEmpty() {
+	public void testAddTaskButtonEnabledWhenBothFieldsAreNotEmpty() {
 		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
 		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
-		JButtonFixture addButton = tasksPanel.button("btnAddTask");
+		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
 		
 		idField.enterText("1");
 		descriptionField.enterText("Buy groceries");
-		addButton.requireEnabled();
+		addTaskButton.requireEnabled();
 	}
 	
 	@Test @GUITest
-	public void testAddButtonControllerInvocationWhenPressed() {
+	public void testAddTaskButtonControllerInvocationWhenPressed() {
 		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
 		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
-		JButtonFixture addButton = tasksPanel.button("btnAddTask");
+		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
 		
 		idField.enterText("1");
 		descriptionField.enterText("Buy groceries");
-		addButton.click();
+		addTaskButton.click();
 		
 		verify(todoController).addTask(new Task("1", "Buy groceries"));;
+	}
+	
+	@Test @GUITest
+	public void testTaskAddedAddsToTheTaskList() {
+		Task task = new Task("1", "Buy groceries");
+		
+		GuiActionRunner.execute(() -> todoSwingView.taskAdded(task));
+		
+		String[] taskList = tasksPanel.list("tasksTaskList").contents();
+		assertThat(taskList).containsExactly("#1 - Buy groceries");
 	}
 }
