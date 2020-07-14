@@ -8,15 +8,44 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import it.unifi.simpletodoapp.controller.TodoController;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.view.TodoView;
 import javax.swing.JTabbedPane;
+import java.awt.GridBagLayout;
+import javax.swing.JLabel;
+import java.awt.GridBagConstraints;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+
+import java.awt.Insets;
+import javax.swing.JButton;
+import javax.swing.JSeparator;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
+import javax.swing.JComboBox;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.ActionEvent;
 
 public class TodoSwingView extends JFrame implements TodoView {
 
 	private static final long serialVersionUID = -8047380292195826724L;
+	
+	private TodoController todoController;
+	
 	private JPanel contentPane;
+	private JTextField taskDescriptionTextField;
+	private JTextField taskIdTextField;
+	private JButton btnAddTask;
+	private JList<Task> tasksTaskList;
+	private JButton btnDeleteTask;
+	private JComboBox<Tag> tagComboBox;
+	private JButton btnAssignTag;
+	private JList<Tag> assignedTagsList;
+	private JButton btnRemoveTag;
 
 	/**
 	 * Launch the application.
@@ -25,6 +54,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					UIManager.setLookAndFeel(
+							UIManager.getCrossPlatformLookAndFeelClassName());
 					TodoSwingView frame = new TodoSwingView();
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -39,23 +70,207 @@ public class TodoSwingView extends JFrame implements TodoView {
 	 */
 	public TodoSwingView() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 720, 500);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		contentPane.setName("contentPane");
 		setContentPane(contentPane);
-		
+
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
 		tabbedPane.setName("tabbedPane");
-		
+
 		JPanel tasksPanel = new JPanel();
-		tasksPanel.setName("tasks_panel");
+		tasksPanel.setName("tasksPanel");
 		tabbedPane.addTab("Tasks", null, tasksPanel, null);
+		GridBagLayout gblTasksPanel = new GridBagLayout();
+		gblTasksPanel.columnWidths = new int[]{150, 200, 350, 0};
+		gblTasksPanel.rowHeights = new int[]{20, 20, 20, 25, 0, 0, 0};
+		gblTasksPanel.columnWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gblTasksPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		tasksPanel.setLayout(gblTasksPanel);
+
+		JLabel taskIdLabel = new JLabel("id");
+		taskIdLabel.setName("tasksIdLabel");
+		GridBagConstraints gbcTaskIdLabel = new GridBagConstraints();
+		gbcTaskIdLabel.insets = new Insets(0, 0, 5, 5);
+		gbcTaskIdLabel.gridx = 0;
+		gbcTaskIdLabel.gridy = 1;
+		tasksPanel.add(taskIdLabel, gbcTaskIdLabel);
+
+		taskIdTextField = new JTextField();
+		taskIdTextField.setName("tasksIdTextField");
+		GridBagConstraints gbcTaskIdTextField = new GridBagConstraints();
+		gbcTaskIdTextField.insets = new Insets(0, 0, 5, 5);
+		gbcTaskIdTextField.fill = GridBagConstraints.HORIZONTAL;
+		gbcTaskIdTextField.gridx = 1;
+		gbcTaskIdTextField.gridy = 1;
+		tasksPanel.add(taskIdTextField, gbcTaskIdTextField);
+		taskIdTextField.setColumns(10);
+
+		JLabel taskDescriptionLabel = new JLabel("description");
+		taskDescriptionLabel.setName("tasksDescriptionLabel");
+		GridBagConstraints gbcTaskDescriptionLabel = new GridBagConstraints();
+		gbcTaskDescriptionLabel.insets = new Insets(0, 0, 5, 5);
+		gbcTaskDescriptionLabel.gridx = 0;
+		gbcTaskDescriptionLabel.gridy = 2;
+		tasksPanel.add(taskDescriptionLabel, gbcTaskDescriptionLabel);
+
+		taskDescriptionTextField = new JTextField();
+		taskDescriptionTextField.setName("tasksDescriptionTextField");
+		GridBagConstraints gbcTaskDescriptionTextField = new GridBagConstraints();
+		gbcTaskDescriptionTextField.gridwidth = 2;
+		gbcTaskDescriptionTextField.insets = new Insets(0, 0, 5, 0);
+		gbcTaskDescriptionTextField.fill = GridBagConstraints.HORIZONTAL;
+		gbcTaskDescriptionTextField.gridx = 1;
+		gbcTaskDescriptionTextField.gridy = 2;
+		tasksPanel.add(taskDescriptionTextField, gbcTaskDescriptionTextField);
+		taskDescriptionTextField.setColumns(10);
+
+		btnAddTask = new JButton("Add task");
+		btnAddTask.setEnabled(false);
+		btnAddTask.setName("btnAddTask");
+		GridBagConstraints gbcBtnAddTask = new GridBagConstraints();
+		gbcBtnAddTask.insets = new Insets(0, 0, 5, 0);
+		gbcBtnAddTask.gridwidth = 3;
+		gbcBtnAddTask.gridx = 0;
+		gbcBtnAddTask.gridy = 3;
+		tasksPanel.add(btnAddTask, gbcBtnAddTask);
 		
+		btnAddTask.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				todoController.addTask(new Task(taskIdTextField.getText(), taskDescriptionTextField.getText()));
+			}
+		});
+		
+		KeyAdapter btnAddEnabler = new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				btnAddTask.setEnabled(
+						!taskIdTextField.getText().trim().isEmpty()
+						&& !taskDescriptionTextField.getText().trim().isEmpty());
+			}
+		};
+		
+		taskIdTextField.addKeyListener(btnAddEnabler);
+		taskDescriptionTextField.addKeyListener(btnAddEnabler);
+
+		JSeparator tasksTabSeparator = new JSeparator();
+		tasksTabSeparator.setName("tasksTabSeparator");
+		GridBagConstraints gbcTasksTabSeparator = new GridBagConstraints();
+		gbcTasksTabSeparator.insets = new Insets(0, 0, 5, 0);
+		gbcTasksTabSeparator.gridwidth = 3;
+		gbcTasksTabSeparator.gridx = 0;
+		gbcTasksTabSeparator.gridy = 4;
+		tasksPanel.add(tasksTabSeparator, gbcTasksTabSeparator);
+
+		JPanel tasksLeftSubPanel = new JPanel();
+		tasksLeftSubPanel.setName("tasksLeftSubPanel");
+		GridBagConstraints gbcTasksLeftSubPanel = new GridBagConstraints();
+		gbcTasksLeftSubPanel.gridwidth = 2;
+		gbcTasksLeftSubPanel.insets = new Insets(0, 0, 0, 5);
+		gbcTasksLeftSubPanel.fill = GridBagConstraints.VERTICAL;
+		gbcTasksLeftSubPanel.gridx = 0;
+		gbcTasksLeftSubPanel.gridy = 5;
+		tasksPanel.add(tasksLeftSubPanel, gbcTasksLeftSubPanel);
+		GridBagLayout gblTasksLeftSubPanel = new GridBagLayout();
+		gblTasksLeftSubPanel.columnWidths = new int[]{34, 34, 34, 34, 34, 34, 34, 34, 34, 34};
+		gblTasksLeftSubPanel.rowHeights = new int[]{20, 320, 0, 0};
+		gblTasksLeftSubPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+		gblTasksLeftSubPanel.rowWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+		tasksLeftSubPanel.setLayout(gblTasksLeftSubPanel);
+
+		JLabel tasksTaskListLabel = new JLabel("Todo List");
+		tasksTaskListLabel.setName("tasksTaskListLabel");
+		GridBagConstraints gbcTasksTaskListLabel = new GridBagConstraints();
+		gbcTasksTaskListLabel.insets = new Insets(0, 0, 5, 0);
+		gbcTasksTaskListLabel.gridwidth = 10;
+		gbcTasksTaskListLabel.gridx = 0;
+		gbcTasksTaskListLabel.gridy = 0;
+		tasksLeftSubPanel.add(tasksTaskListLabel, gbcTasksTaskListLabel);
+
+		tasksTaskList = new JList<>();
+		tasksTaskList.setName("tasksTaskList");
+		tasksTaskList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		GridBagConstraints gbcTasksTaskList = new GridBagConstraints();
+		gbcTasksTaskList.insets = new Insets(0, 0, 5, 0);
+		gbcTasksTaskList.gridwidth = 10;
+		gbcTasksTaskList.fill = GridBagConstraints.BOTH;
+		gbcTasksTaskList.gridx = 0;
+		gbcTasksTaskList.gridy = 1;
+		tasksLeftSubPanel.add(tasksTaskList, gbcTasksTaskList);
+
+		btnDeleteTask = new JButton("Delete task");
+		btnDeleteTask.setEnabled(false);
+		btnDeleteTask.setName("btnDeleteTask");
+		GridBagConstraints gbcBtnDeleteTask = new GridBagConstraints();
+		gbcBtnDeleteTask.gridwidth = 10;
+		gbcBtnDeleteTask.gridx = 0;
+		gbcBtnDeleteTask.gridy = 2;
+		tasksLeftSubPanel.add(btnDeleteTask, gbcBtnDeleteTask);
+
+		JPanel tasksRightSubPanel = new JPanel();
+		tasksRightSubPanel.setName("tasksRightSubPanel");
+		GridBagConstraints gbcTasksRightSubPanel = new GridBagConstraints();
+		gbcTasksRightSubPanel.fill = GridBagConstraints.BOTH;
+		gbcTasksRightSubPanel.gridx = 2;
+		gbcTasksRightSubPanel.gridy = 5;
+		tasksPanel.add(tasksRightSubPanel, gbcTasksRightSubPanel);
+		GridBagLayout gbl_tasksRightSubPanel = new GridBagLayout();
+		gbl_tasksRightSubPanel.columnWidths = new int[]{34, 34, 34, 34, 34, 34, 34, 34, 34, 34};
+		gbl_tasksRightSubPanel.rowHeights = new int[]{25, 25, 290, 25, 0};
+		gbl_tasksRightSubPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+		gbl_tasksRightSubPanel.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		tasksRightSubPanel.setLayout(gbl_tasksRightSubPanel);
+
+		tagComboBox = new JComboBox<Tag>();
+		tagComboBox.setEnabled(false);
+		tagComboBox.setName("tagComboBox");
+		GridBagConstraints gbcTagComboBox = new GridBagConstraints();
+		gbcTagComboBox.insets = new Insets(0, 0, 5, 0);
+		gbcTagComboBox.fill = GridBagConstraints.HORIZONTAL;
+		gbcTagComboBox.gridwidth = 6;
+		gbcTagComboBox.gridx = 2;
+		gbcTagComboBox.gridy = 0;
+		tasksRightSubPanel.add(tagComboBox, gbcTagComboBox);
+
+		btnAssignTag = new JButton("Assign tag");
+		btnAssignTag.setEnabled(false);
+		btnAssignTag.setName("btnAssignTag");
+		btnAssignTag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		GridBagConstraints gbcBtnAssignTag = new GridBagConstraints();
+		gbcBtnAssignTag.insets = new Insets(0, 0, 5, 0);
+		gbcBtnAssignTag.gridwidth = 10;
+		gbcBtnAssignTag.gridx = 0;
+		gbcBtnAssignTag.gridy = 1;
+		tasksRightSubPanel.add(btnAssignTag, gbcBtnAssignTag);
+
+		assignedTagsList = new JList<Tag>();
+		assignedTagsList.setName("assignedTagsList");
+		assignedTagsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		GridBagConstraints gbcAssignedTagsList = new GridBagConstraints();
+		gbcAssignedTagsList.insets = new Insets(0, 0, 5, 0);
+		gbcAssignedTagsList.gridwidth = 10;
+		gbcAssignedTagsList.fill = GridBagConstraints.BOTH;
+		gbcAssignedTagsList.gridx = 0;
+		gbcAssignedTagsList.gridy = 2;
+		tasksRightSubPanel.add(assignedTagsList, gbcAssignedTagsList);
+
+		btnRemoveTag = new JButton("Remove tag");
+		btnRemoveTag.setEnabled(false);
+		btnRemoveTag.setName("btnRemoveTag");
+		GridBagConstraints gbcBtnRemoveTag = new GridBagConstraints();
+		gbcBtnRemoveTag.gridwidth = 9;
+		gbcBtnRemoveTag.gridx = 1;
+		gbcBtnRemoveTag.gridy = 3;
+		tasksRightSubPanel.add(btnRemoveTag, gbcBtnRemoveTag);
+
 		JPanel tagsPanel = new JPanel();
-		tagsPanel.setName("tags_panel");
+		tagsPanel.setName("tagsPanel");
 		tabbedPane.addTab("Tags", null, tagsPanel, null);
 	}
 
