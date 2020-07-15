@@ -330,16 +330,20 @@ public class TodoSwingView extends JFrame implements TodoView {
 		btnAssignTag = new JButton("Assign tag");
 		btnAssignTag.setEnabled(false);
 		btnAssignTag.setName("btnAssignTag");
-		btnAssignTag.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
 		GridBagConstraints gbcBtnAssignTag = new GridBagConstraints();
 		gbcBtnAssignTag.insets = new Insets(0, 0, 5, 0);
 		gbcBtnAssignTag.gridwidth = 10;
 		gbcBtnAssignTag.gridx = 0;
 		gbcBtnAssignTag.gridy = 1;
 		tasksRightSubPanel.add(btnAssignTag, gbcBtnAssignTag);
+		
+		btnAssignTag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Task task = taskListModel.get(tasksTaskList.getSelectedIndex()).task;
+				Tag tag = tagComboModel.getElementAt(tagsComboBox.getSelectedIndex()).tag;
+				todoController.addTagToTask(task, tag);
+			}
+		});
 
 		assignedTagsList = new JList<>();
 		assignedTagsList.setName("assignedTagsList");
