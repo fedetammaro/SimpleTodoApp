@@ -27,7 +27,10 @@ public class TodoService {
 	}
 
 	public void deleteTask(Task task) {
-		transactionManager.doTaskTransaction(taskRepository -> {
+		transactionManager.doCompositeTransaction((taskRepository, tagRepository) -> {
+			taskRepository.getTagsByTaskId(task.getId()).stream()
+			.forEach(tagId -> tagRepository.removeTaskFromTag(tagId, task.getId()));
+			
 			taskRepository.delete(task);
 			return null;
 		});
@@ -49,7 +52,10 @@ public class TodoService {
 	}
 
 	public void deleteTag(Tag tag) {
-		transactionManager.doTagTransaction(tagRepository -> {
+		transactionManager.doCompositeTransaction((taskRepository, tagRepository) -> {
+			tagRepository.getTasksByTagId(tag.getId()).stream()
+			.forEach(taskId -> taskRepository.removeTagFromTask(taskId, tag.getId()));
+
 			tagRepository.delete(tag);
 			return null;
 		});
