@@ -53,7 +53,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 	private JComboBox<TagViewModel> tagsComboBox;
 	private TagComboModel tagComboModel = new TagComboModel(); 
 	private JButton btnAssignTag;
-	private JList<Tag> assignedTagsList;
+	private JList<TagViewModel> assignedTagsList;
+	private TagListModel assignedTagsListModel = new TagListModel();
 	private JButton btnRemoveTag;
 	private JLabel tasksErrorLabel;
 	
@@ -110,6 +111,18 @@ public class TodoSwingView extends JFrame implements TodoView {
 	}
 
 	static final class TagComboModel extends DefaultComboBoxModel<TagViewModel> {
+		private static final long serialVersionUID = 1L;
+
+		public void addTag(Tag tag) {
+			addElement(new TagViewModel(tag));
+		}
+
+		public void removeTag(Tag tag) {
+			removeElement(new TagViewModel(tag));
+		}
+	}
+	
+	static final class TagListModel extends DefaultListModel<TagViewModel> {
 		private static final long serialVersionUID = 1L;
 
 		public void addTag(Tag tag) {
@@ -278,10 +291,19 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 		tasksTaskList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				boolean isTaskSelected = tasksTaskList.getSelectedIndex() != -1;
+				int taskIndex = tasksTaskList.getSelectedIndex();
+				boolean isTaskSelected = taskIndex != -1;
 				btnDeleteTask.setEnabled(isTaskSelected);
 				tagsComboBox.setEnabled(isTaskSelected);
 				btnAssignTag.setEnabled(isTaskSelected);
+				
+				// Prevent multiple firings
+				if (!e.getValueIsAdjusting()) {
+					if (isTaskSelected)
+						todoController.getTagsByTask(taskListModel.get(taskIndex).task);
+					else
+						assignedTagsListModel.clear();
+				}
 			}
 		});
 		
@@ -345,7 +367,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 			}
 		});
 
-		assignedTagsList = new JList<>();
+		assignedTagsList = new JList<>(assignedTagsListModel);
 		assignedTagsList.setName("assignedTagsList");
 		assignedTagsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		GridBagConstraints gbcAssignedTagsList = new GridBagConstraints();
@@ -355,6 +377,12 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcAssignedTagsList.gridx = 0;
 		gbcAssignedTagsList.gridy = 2;
 		tasksRightSubPanel.add(assignedTagsList, gbcAssignedTagsList);
+		
+		assignedTagsList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				btnRemoveTag.setEnabled(assignedTagsList.getSelectedIndex() != -1);
+			}
+		});
 
 		btnRemoveTag = new JButton("Remove tag");
 		btnRemoveTag.setEnabled(false);
@@ -364,6 +392,14 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcBtnRemoveTag.gridx = 1;
 		gbcBtnRemoveTag.gridy = 3;
 		tasksRightSubPanel.add(btnRemoveTag, gbcBtnRemoveTag);
+		
+		btnRemoveTag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Task task = taskListModel.get(tasksTaskList.getSelectedIndex()).task;
+				Tag tag = assignedTagsListModel.get(assignedTagsList.getSelectedIndex()).tag;
+				todoController.removeTagFromTask(task, tag);
+			}
+		});
 		
 		tasksErrorLabel = new JLabel(" ");
 		tasksErrorLabel.setName("tasksErrorLabel");
@@ -382,8 +418,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void showAllTasks(List<Task> allTasks) {
-		for (Task task : allTasks)
-			taskListModel.addTask(task);
+		allTasks.stream().forEach(task -> taskListModel.addTask(task));
 	}
 
 	@Override
@@ -426,7 +461,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void showTaskTags(List<Tag> tags) {
-		// Method not yet implemented
+		tags.stream().forEach(tag -> assignedTagsListModel.addTag(tag));
 	}
 
 	@Override
@@ -448,14 +483,14 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void tagAddedToTask(Tag tag) {
-		// TODO Auto-generated method stub
-		
+		assignedTagsListModel.addTag(tag);
+		tasksErrorLabel.setText(" ");
 	}
 
 	@Override
 	public void tagRemovedFromTask(Tag tag) {
-		// TODO Auto-generated method stub
-		
+		assignedTagsListModel.removeTag(tag);
+		tasksErrorLabel.setText(" ");
 	}
 
 }
