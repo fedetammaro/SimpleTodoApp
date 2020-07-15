@@ -3,6 +3,8 @@ package it.unifi.simpletodoapp.view.swing;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Arrays;
+
 import org.assertj.swing.annotation.GUITest;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
@@ -19,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import it.unifi.simpletodoapp.controller.TodoController;
+import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
 @RunWith(GUITestRunner.class)
@@ -208,5 +211,66 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		});
 		
 		tasksPanel.label("tasksErrorLabel").requireText(" ");
+	}
+	
+	@Test @GUITest
+	public void testShowAllTasksAddsToTheTaskList() {
+		Task firstTask = new Task("1", "Buy groceries");
+		Task secondTask = new Task("2", "Start using TDD");
+		
+		GuiActionRunner.execute(() -> todoSwingView.showAllTasks(Arrays.asList(firstTask, secondTask)));
+		
+		String[] taskList = tasksPanel.list("tasksTaskList").contents();
+		assertThat(taskList).containsExactly("#1 - Buy groceries", "#2 - Start using TDD");
+	}
+	
+	@Test @GUITest
+	public void testTagComboBoxEnabledWhenTaskIsSelected() {
+		Task task = new Task("1", "Buy groceries");
+		
+		GuiActionRunner.execute(() -> todoSwingView.taskAdded(task));
+		
+		tasksPanel.list("tasksTaskList").clickItem(0);
+		tasksPanel.comboBox("tagComboBox").requireEnabled();
+		tasksPanel.list("tasksTaskList").clearSelection();
+		tasksPanel.comboBox("tagComboBox").requireDisabled();
+	}
+	
+	@Test @GUITest
+	public void testTagComboBoxContainsTags() {
+		Tag firstTag = new Tag("1", "Work");
+		Tag secondTag = new Tag("2", "Important");
+		
+		GuiActionRunner.execute(() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag)));
+		
+		String[] tagsInComboBox = tasksPanel.comboBox("tagComboBox").contents();
+		assertThat(tagsInComboBox).containsExactly("(1) Work", "(2) Important");
+	}
+	
+	@Test @GUITest
+	public void testAssignTagEnabledWhenTaskIsSelected() {
+		Task task = new Task("1", "Buy groceries");
+		
+		GuiActionRunner.execute(() -> todoSwingView.taskAdded(task));
+		
+		tasksPanel.list("tasksTaskList").clickItem(0);
+		tasksPanel.button("btnAssignTag").requireEnabled();
+		tasksPanel.list("tasksTaskList").clearSelection();
+		tasksPanel.button("btnAssignTag").requireDisabled();
+	}
+	
+	@Test @GUITest
+	public void testAssingTagButtonControllerInvocationWhenPressed() {
+		Task task = new Task("1", "Buy groceries");
+		Tag tag = new Tag("1", "Work");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.taskAdded(task);
+			todoSwingView.showAllTags(Arrays.asList(tag));
+		});
+		
+		tasksPanel.list("tasksTaskList").clickItem(0);
+		tasksPanel.button("btnAssignTag").click();
+		verify(todoController).addTagToTask(task, tag);
 	}
 }

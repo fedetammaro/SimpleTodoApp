@@ -24,6 +24,7 @@ import javax.swing.UIManager;
 
 import java.awt.Insets;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JSeparator;
@@ -49,7 +50,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 	private JList<TaskViewModel> tasksTaskList;
 	private TaskListModel taskListModel = new TaskListModel();
 	private JButton btnDeleteTask;
-	private JComboBox<Tag> tagComboBox;
+	private JComboBox<TagViewModel> tagsComboBox;
+	private TagComboModel tagComboModel = new TagComboModel(); 
 	private JButton btnAssignTag;
 	private JList<Tag> assignedTagsList;
 	private JButton btnRemoveTag;
@@ -68,18 +70,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		}
 		
 		@Override
-		public int hashCode() {
-			return task.hashCode();
-		}
-		
-		@Override
 		public boolean equals(Object object) {
-			if (object == this)
-				return true;
-			
-			if (object == null || object.getClass() != this.getClass())
-				return false;
-			
 			TaskViewModel taskViewModel = (TaskViewModel) object;
 			
 			return taskViewModel.task.equals(this.task);
@@ -95,6 +86,38 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 		public void removeTask(Task task) {
 			removeElement(new TaskViewModel(task));
+		}
+	}
+	
+	static final class TagViewModel {
+		private Tag tag;
+
+		public TagViewModel(Tag tag) {
+			this.tag = tag;
+		}
+
+		@Override
+		public String toString() {
+			return "(" + tag.getId() + ") " + tag.getName();
+		}
+		
+		@Override
+		public boolean equals(Object object) {
+			TagViewModel tagViewModel = (TagViewModel) object;
+			
+			return tagViewModel.tag.equals(this.tag);
+		}
+	}
+
+	static final class TagComboModel extends DefaultComboBoxModel<TagViewModel> {
+		private static final long serialVersionUID = 1L;
+
+		public void addTag(Tag tag) {
+			addElement(new TagViewModel(tag));
+		}
+
+		public void removeTag(Tag tag) {
+			removeElement(new TagViewModel(tag));
 		}
 	}
 	
@@ -255,7 +278,10 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 		tasksTaskList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				btnDeleteTask.setEnabled(tasksTaskList.getSelectedIndex() != -1);
+				boolean isTaskSelected = tasksTaskList.getSelectedIndex() != -1;
+				btnDeleteTask.setEnabled(isTaskSelected);
+				tagsComboBox.setEnabled(isTaskSelected);
+				btnAssignTag.setEnabled(isTaskSelected);
 			}
 		});
 		
@@ -290,16 +316,16 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gblTasksRightSubPanel.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
 		tasksRightSubPanel.setLayout(gblTasksRightSubPanel);
 
-		tagComboBox = new JComboBox<>();
-		tagComboBox.setEnabled(false);
-		tagComboBox.setName("tagComboBox");
+		tagsComboBox = new JComboBox<>(tagComboModel);
+		tagsComboBox.setEnabled(false);
+		tagsComboBox.setName("tagComboBox");
 		GridBagConstraints gbcTagComboBox = new GridBagConstraints();
 		gbcTagComboBox.insets = new Insets(0, 0, 5, 0);
 		gbcTagComboBox.fill = GridBagConstraints.HORIZONTAL;
 		gbcTagComboBox.gridwidth = 6;
 		gbcTagComboBox.gridx = 2;
 		gbcTagComboBox.gridy = 0;
-		tasksRightSubPanel.add(tagComboBox, gbcTagComboBox);
+		tasksRightSubPanel.add(tagsComboBox, gbcTagComboBox);
 
 		btnAssignTag = new JButton("Assign tag");
 		btnAssignTag.setEnabled(false);
@@ -352,7 +378,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void showAllTasks(List<Task> allTasks) {
-		// Method not yet implemented
+		for (Task task : allTasks)
+			taskListModel.addTask(task);
 	}
 
 	@Override
@@ -373,8 +400,9 @@ public class TodoSwingView extends JFrame implements TodoView {
 	}
 
 	@Override
-	public void showAllTags(List<Tag> tags) {
-		// Method not yet implemented
+	public void showAllTags(List<Tag> allTags) {
+		for (Tag tag : allTags)
+			tagComboModel.addTag(tag);
 	}
 
 	@Override
@@ -400,6 +428,30 @@ public class TodoSwingView extends JFrame implements TodoView {
 	@Override
 	public void showTagTasks(List<Task> tasks) {
 		// Method not yet implemented
+	}
+
+	@Override
+	public void taskAddedToTag(Task task) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void taskRemovedFromTag(Task task) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void tagAddedToTask(Tag tag) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void tagRemovedFromTask(Tag tag) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
