@@ -1,14 +1,15 @@
 package it.unifi.simpletodoapp.view.swing;
 
-import static javax.swing.SwingConstants.*;
-
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import it.unifi.simpletodoapp.controller.TodoController;
 import it.unifi.simpletodoapp.model.Tag;
@@ -52,6 +53,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 	private JButton btnAssignTag;
 	private JList<Tag> assignedTagsList;
 	private JButton btnRemoveTag;
+	private JLabel tasksErrorLabel;
 	
 	static final class TaskViewModel {
 		private Task task;
@@ -64,7 +66,12 @@ public class TodoSwingView extends JFrame implements TodoView {
 		public String toString() {
 			return "#" + task.getId() + " - " + task.getDescription();
 		}
-
+		
+		@Override
+		public int hashCode() {
+			return task.hashCode();
+		}
+		
 		@Override
 		public boolean equals(Object object) {
 			if (object == this)
@@ -113,6 +120,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 	 * Create the frame.
 	 */
 	public TodoSwingView() {
+		setTitle("Simple Todo Application");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 720, 500);
 		contentPane = new JPanel();
@@ -130,9 +138,9 @@ public class TodoSwingView extends JFrame implements TodoView {
 		tabbedPane.addTab("Tasks", null, tasksPanel, null);
 		GridBagLayout gblTasksPanel = new GridBagLayout();
 		gblTasksPanel.columnWidths = new int[]{150, 200, 350, 0};
-		gblTasksPanel.rowHeights = new int[]{20, 20, 20, 25, 0, 0, 0};
+		gblTasksPanel.rowHeights = new int[]{20, 20, 20, 25, 0, 0, 0, 0};
 		gblTasksPanel.columnWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
-		gblTasksPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gblTasksPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
 		tasksPanel.setLayout(gblTasksPanel);
 
 		JLabel taskIdLabel = new JLabel("id");
@@ -213,7 +221,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		tasksLeftSubPanel.setName("tasksLeftSubPanel");
 		GridBagConstraints gbcTasksLeftSubPanel = new GridBagConstraints();
 		gbcTasksLeftSubPanel.gridwidth = 2;
-		gbcTasksLeftSubPanel.insets = new Insets(0, 0, 0, 5);
+		gbcTasksLeftSubPanel.insets = new Insets(0, 0, 5, 5);
 		gbcTasksLeftSubPanel.fill = GridBagConstraints.VERTICAL;
 		gbcTasksLeftSubPanel.gridx = 0;
 		gbcTasksLeftSubPanel.gridy = 5;
@@ -245,6 +253,12 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcTasksTaskList.gridy = 1;
 		tasksLeftSubPanel.add(tasksTaskList, gbcTasksTaskList);
 
+		tasksTaskList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				btnDeleteTask.setEnabled(tasksTaskList.getSelectedIndex() != -1);
+			}
+		});
+		
 		btnDeleteTask = new JButton("Delete task");
 		btnDeleteTask.setEnabled(false);
 		btnDeleteTask.setName("btnDeleteTask");
@@ -253,10 +267,18 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcBtnDeleteTask.gridx = 0;
 		gbcBtnDeleteTask.gridy = 2;
 		tasksLeftSubPanel.add(btnDeleteTask, gbcBtnDeleteTask);
-
+		
+		btnDeleteTask.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Task task = taskListModel.get(tasksTaskList.getSelectedIndex()).task;
+				todoController.deleteTask(task);
+			}
+		});
+		
 		JPanel tasksRightSubPanel = new JPanel();
 		tasksRightSubPanel.setName("tasksRightSubPanel");
 		GridBagConstraints gbcTasksRightSubPanel = new GridBagConstraints();
+		gbcTasksRightSubPanel.insets = new Insets(0, 0, 5, 0);
 		gbcTasksRightSubPanel.fill = GridBagConstraints.BOTH;
 		gbcTasksRightSubPanel.gridx = 2;
 		gbcTasksRightSubPanel.gridy = 5;
@@ -312,6 +334,16 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcBtnRemoveTag.gridx = 1;
 		gbcBtnRemoveTag.gridy = 3;
 		tasksRightSubPanel.add(btnRemoveTag, gbcBtnRemoveTag);
+		
+		tasksErrorLabel = new JLabel(" ");
+		tasksErrorLabel.setName("tasksErrorLabel");
+		tasksErrorLabel.setForeground(Color.RED);
+		GridBagConstraints gbcTasksErrorLabel = new GridBagConstraints();
+		gbcTasksErrorLabel.gridwidth = 3;
+		gbcTasksErrorLabel.insets = new Insets(0, 0, 0, 5);
+		gbcTasksErrorLabel.gridx = 0;
+		gbcTasksErrorLabel.gridy = 6;
+		tasksPanel.add(tasksErrorLabel, gbcTasksErrorLabel);
 
 		JPanel tagsPanel = new JPanel();
 		tagsPanel.setName("tagsPanel");
@@ -326,16 +358,18 @@ public class TodoSwingView extends JFrame implements TodoView {
 	@Override
 	public void taskAdded(Task task) {
 		taskListModel.addTask(task);
+		tasksErrorLabel.setText(" ");
 	}
 
 	@Override
 	public void taskError(String errorMessage) {
-		// Method not yet implemented
+		tasksErrorLabel.setText(errorMessage);
 	}
 
 	@Override
 	public void taskDeleted(Task task) {
-		// Method not yet implemented
+		taskListModel.removeTask(task);
+		tasksErrorLabel.setText(" ");
 	}
 
 	@Override
