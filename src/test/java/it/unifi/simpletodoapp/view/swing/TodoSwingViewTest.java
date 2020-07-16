@@ -64,10 +64,10 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	
 	@Test @GUITest
 	public void testTasksTabControlsArePresent() {
-		tasksPanel.label("tasksIdLabel");
-		tasksPanel.textBox("tasksIdTextField").requireEnabled();
-		tasksPanel.label("tasksDescriptionLabel");
-		tasksPanel.textBox("tasksDescriptionTextField").requireEnabled();
+		tasksPanel.label("taskIdLabel");
+		tasksPanel.textBox("taskIdTextField").requireEnabled();
+		tasksPanel.label("taskDescriptionLabel");
+		tasksPanel.textBox("taskDescriptionTextField").requireEnabled();
 		tasksPanel.button("btnAddTask").requireDisabled();
 		tasksPanel.label("tasksTaskListLabel");
 		tasksPanel.list("tasksTaskList");
@@ -81,8 +81,8 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	
 	@Test @GUITest
 	public void testAddTaskButtonDisabledUntilBothFieldsAreNotEmpty() {
-		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
-		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
+		JTextComponentFixture idField = tasksPanel.textBox("taskIdTextField");
+		JTextComponentFixture descriptionField = tasksPanel.textBox("taskDescriptionTextField");
 		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
 		
 		idField.enterText("1");
@@ -95,8 +95,8 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	
 	@Test @GUITest
 	public void testAddTaskButtonDisabledWhenSpacesAreInput() {
-		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
-		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
+		JTextComponentFixture idField = tasksPanel.textBox("taskIdTextField");
+		JTextComponentFixture descriptionField = tasksPanel.textBox("taskDescriptionTextField");
 		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
 		
 		idField.enterText(" ");
@@ -112,8 +112,8 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	
 	@Test @GUITest
 	public void testAddTaskButtonEnabledWhenBothFieldsAreNotEmpty() {
-		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
-		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
+		JTextComponentFixture idField = tasksPanel.textBox("taskIdTextField");
+		JTextComponentFixture descriptionField = tasksPanel.textBox("taskDescriptionTextField");
 		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
 		
 		idField.enterText("1");
@@ -123,8 +123,8 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	
 	@Test @GUITest
 	public void testAddTaskButtonControllerInvocationWhenPressed() {
-		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
-		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
+		JTextComponentFixture idField = tasksPanel.textBox("taskIdTextField");
+		JTextComponentFixture descriptionField = tasksPanel.textBox("taskDescriptionTextField");
 		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
 		
 		idField.enterText("1");
@@ -407,8 +407,8 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		tagsPanel.label("tagsTagListLabel");
 		tagsPanel.list("tagsTagList");
 		tagsPanel.button("btnDeleteTag").requireDisabled();
-		tagsPanel.label("tagsTaskListLabel");
-		tagsPanel.list("assignedTaskList");
+		tagsPanel.label("assignedTasksListLabel");
+		tagsPanel.list("assignedTasksList");
 		tagsPanel.button("btnRemoveTask").requireDisabled();
 		tagsPanel.label("tagsErrorLabel");
 	}
@@ -606,7 +606,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		
 		GuiActionRunner.execute(() -> todoSwingView.showTagTasks(Arrays.asList(firstTask, secondTask)));
 		
-		String[] tasksList = tagsPanel.list("assignedTaskList").contents();
+		String[] tasksList = tagsPanel.list("assignedTasksList").contents();
 		assertThat(tasksList).containsExactly("#1 - Buy groceries", "#2 - Start using TDD");
 	}
 	
@@ -626,7 +626,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		tagsPanel.list("tagsTagList").clickItem(0);
 		tagsPanel.list("tagsTagList").clearSelection();
 		
-		String[] tasksList = tagsPanel.list("assignedTaskList").contents();
+		String[] tasksList = tagsPanel.list("assignedTasksList").contents();
 		assertThat(tasksList).isEmpty();
 	}
 	
@@ -640,9 +640,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 			todoSwingView.showTagTasks(Collections.singletonList(task));
 		});
 		
-		tagsPanel.list("assignedTaskList").clickItem(0);
+		tagsPanel.list("assignedTasksList").clickItem(0);
 		tagsPanel.button("btnRemoveTask").requireEnabled();
-		tagsPanel.list("assignedTaskList").clearSelection();
+		tagsPanel.list("assignedTasksList").clearSelection();
 		tagsPanel.button("btnRemoveTask").requireDisabled();
 	}
 	
@@ -659,14 +659,14 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		});
 		
 		tagsPanel.list("tagsTagList").clickItem(0);
-		tagsPanel.list("assignedTaskList").clickItem(0);
+		tagsPanel.list("assignedTasksList").clickItem(0);
 		tagsPanel.button("btnRemoveTask").click();
 		
 		verify(todoController).removeTagFromTask(task, tag);
 	}
 	
 	@Test @GUITest
-	public void testTaskRemovedFromTagRemovesFromTheAssignedTaskList() {
+	public void testTaskRemovedFromTagRemovesFromTheassignedTasksList() {
 		getTagsPanel();
 		
 		Task task = new Task("1", "Buy groceries");
@@ -676,7 +676,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 			todoSwingView.taskRemovedFromTag(task);
 		});
 		
-		String[] assignedTasks = tagsPanel.list("assignedTaskList").contents();
+		String[] assignedTasks = tagsPanel.list("assignedTasksList").contents();
 		assertThat(assignedTasks).isEmpty();
 	}
 	
@@ -687,7 +687,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		Task task = new Task("1", "Buy groceries");
 		
 		GuiActionRunner.execute(() -> {
-			todoSwingView.taskAddedToTag(task);
+			todoSwingView.showTagTasks(Collections.singletonList(task));
 			todoSwingView.tagError("This is an error message");
 			todoSwingView.taskRemovedFromTag(task);
 		});

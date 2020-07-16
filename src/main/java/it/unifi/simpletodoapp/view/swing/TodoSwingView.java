@@ -126,10 +126,6 @@ public class TodoSwingView extends JFrame implements TodoView {
 		public void addTag(Tag tag) {
 			addElement(new TagViewModel(tag));
 		}
-
-		public void removeTag(Tag tag) {
-			removeElement(new TagViewModel(tag));
-		}
 	}
 	
 	static final class TagListModel extends DefaultListModel<TagViewModel> {
@@ -190,7 +186,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		tasksPanel.setLayout(gblTasksPanel);
 
 		JLabel taskIdLabel = new JLabel("id");
-		taskIdLabel.setName("tasksIdLabel");
+		taskIdLabel.setName("taskIdLabel");
 		GridBagConstraints gbcTaskIdLabel = new GridBagConstraints();
 		gbcTaskIdLabel.insets = new Insets(0, 0, 5, 5);
 		gbcTaskIdLabel.gridx = 0;
@@ -198,7 +194,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		tasksPanel.add(taskIdLabel, gbcTaskIdLabel);
 
 		taskIdTextField = new JTextField();
-		taskIdTextField.setName("tasksIdTextField");
+		taskIdTextField.setName("taskIdTextField");
 		GridBagConstraints gbcTaskIdTextField = new GridBagConstraints();
 		gbcTaskIdTextField.insets = new Insets(0, 0, 5, 5);
 		gbcTaskIdTextField.fill = GridBagConstraints.HORIZONTAL;
@@ -208,7 +204,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		taskIdTextField.setColumns(10);
 
 		JLabel taskDescriptionLabel = new JLabel("description");
-		taskDescriptionLabel.setName("tasksDescriptionLabel");
+		taskDescriptionLabel.setName("taskDescriptionLabel");
 		GridBagConstraints gbcTaskDescriptionLabel = new GridBagConstraints();
 		gbcTaskDescriptionLabel.insets = new Insets(0, 0, 5, 5);
 		gbcTaskDescriptionLabel.gridx = 0;
@@ -216,7 +212,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		tasksPanel.add(taskDescriptionLabel, gbcTaskDescriptionLabel);
 
 		taskDescriptionTextField = new JTextField();
-		taskDescriptionTextField.setName("tasksDescriptionTextField");
+		taskDescriptionTextField.setName("taskDescriptionTextField");
 		GridBagConstraints gbcTaskDescriptionTextField = new GridBagConstraints();
 		gbcTaskDescriptionTextField.gridwidth = 3;
 		gbcTaskDescriptionTextField.insets = new Insets(0, 0, 5, 0);
@@ -577,17 +573,17 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gblTagsRightSubPanel.rowWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
 		tagsRightSubPanel.setLayout(gblTagsRightSubPanel);
 		
-		JLabel tagsTaskListLabel = new JLabel("Tasks with this tag");
-		tagsTaskListLabel.setName("tagsTaskListLabel");
-		GridBagConstraints gbcTagsTaskListLabel = new GridBagConstraints();
-		gbcTagsTaskListLabel.insets = new Insets(0, 0, 5, 0);
-		gbcTagsTaskListLabel.gridwidth = 10;
-		gbcTagsTaskListLabel.gridx = 0;
-		gbcTagsTaskListLabel.gridy = 0;
-		tagsRightSubPanel.add(tagsTaskListLabel, gbcTagsTaskListLabel);
+		JLabel assignedTasksListLabel = new JLabel("Tasks with this tag");
+		assignedTasksListLabel.setName("assignedTasksListLabel");
+		GridBagConstraints gbcAssignedTasksListLabel = new GridBagConstraints();
+		gbcAssignedTasksListLabel.insets = new Insets(0, 0, 5, 0);
+		gbcAssignedTasksListLabel.gridwidth = 10;
+		gbcAssignedTasksListLabel.gridx = 0;
+		gbcAssignedTasksListLabel.gridy = 0;
+		tagsRightSubPanel.add(assignedTasksListLabel, gbcAssignedTasksListLabel);
 		
 		assignedTasksList = new JList<>(assignedTasksListModel);
-		assignedTasksList.setName("assignedTaskList");
+		assignedTasksList.setName("assignedTasksList");
 		GridBagConstraints gbcAssignedTaskList = new GridBagConstraints();
 		gbcAssignedTaskList.insets = new Insets(0, 0, 5, 0);
 		gbcAssignedTaskList.gridwidth = 10;
@@ -686,12 +682,6 @@ public class TodoSwingView extends JFrame implements TodoView {
 	@Override
 	public void showTagTasks(List<Task> tasks) {
 		tasks.stream().forEach(task -> assignedTasksListModel.addTask(task));
-	}
-
-	@Override
-	public void taskAddedToTag(Task task) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

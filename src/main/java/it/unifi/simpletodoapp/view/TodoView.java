@@ -17,7 +17,6 @@ public interface TodoView {
 	public void tagRemoved(Tag tag);
 	public void showTaskTags(List<Tag> tags);
 	public void showTagTasks(List<Task> tasks);
-	public void taskAddedToTag(Task task);
 	public void taskRemovedFromTag(Task task);
 	public void tagAddedToTask(Tag tag);
 	public void tagRemovedFromTask(Tag tag);
