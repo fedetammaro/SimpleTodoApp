@@ -94,7 +94,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	}
 	
 	@Test @GUITest
-	public void testAddButtonDisabledWhenSpacesAreInput() {
+	public void testAddTaskButtonDisabledWhenSpacesAreInput() {
 		JTextComponentFixture idField = tasksPanel.textBox("tasksIdTextField");
 		JTextComponentFixture descriptionField = tasksPanel.textBox("tasksDescriptionTextField");
 		JButtonFixture addTaskButton = tasksPanel.button("btnAddTask");
@@ -288,7 +288,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	}
 	
 	@Test @GUITest
-	public void testTagAddedAddsToTheTagList() {
+	public void testTagAddedAddsToTheAssignedTagList() {
 		Tag tag = new Tag("1", "Work");
 		
 		GuiActionRunner.execute(() -> todoSwingView.tagAddedToTask(tag));
@@ -411,6 +411,288 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		tagsPanel.list("assignedTaskList");
 		tagsPanel.button("btnRemoveTask").requireDisabled();
 		tagsPanel.label("tagsErrorLabel");
+	}
+	
+	@Test @GUITest
+	public void testAddTagButtonDisabledUntilBothFieldsAreNotEmpty() {
+		getTagsPanel();
+		
+		JTextComponentFixture idField = tagsPanel.textBox("tagIdTextField");
+		JTextComponentFixture nameField = tagsPanel.textBox("tagNameTextField");
+		JButtonFixture addTagButton = tagsPanel.button("btnAddTag");
+		
+		idField.enterText("1");
+		addTagButton.requireDisabled();
+		
+		idField.setText("");
+		nameField.setText("Work");
+		addTagButton.requireDisabled();
+	}
+	
+	@Test @GUITest
+	public void testAddTagButtonDisabledWhenSpacesAreInput() {
+		getTagsPanel();
+		
+		JTextComponentFixture idField = tagsPanel.textBox("tagIdTextField");
+		JTextComponentFixture nameField = tagsPanel.textBox("tagNameTextField");
+		JButtonFixture addTagButton = tagsPanel.button("btnAddTag");
+		
+		idField.enterText(" ");
+		nameField.enterText("Work");
+		addTagButton.requireDisabled();
+		
+		idField.setText("");
+		nameField.setText("");
+		idField.enterText("1");
+		nameField.enterText(" ");
+		addTagButton.requireDisabled();
+	}
+	
+	@Test @GUITest
+	public void testAddTagButtonEnabledWhenBothFieldsAreNotEmpty() {
+		getTagsPanel();
+		
+		JTextComponentFixture idField = tagsPanel.textBox("tagIdTextField");
+		JTextComponentFixture nameField = tagsPanel.textBox("tagNameTextField");
+		JButtonFixture addtagButton = tagsPanel.button("btnAddTag");
+		
+		idField.enterText("1");
+		nameField.enterText("Work");
+		addtagButton.requireEnabled();
+	}
+	
+	@Test @GUITest
+	public void testAddTagButtonControllerInvocationWhenPressed() {
+		getTagsPanel();
+		
+		JTextComponentFixture idField = tagsPanel.textBox("tagIdTextField");
+		JTextComponentFixture nameField = tagsPanel.textBox("tagNameTextField");
+		JButtonFixture addTagButton = tagsPanel.button("btnAddTag");
+		
+		idField.enterText("1");
+		nameField.enterText("Work");
+		addTagButton.click();
+		
+		verify(todoController).addTag(new Tag("1", "Work"));
+	}
+	
+	@Test @GUITest
+	public void testTagAddedAddsToTheTagList() {
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		
+		GuiActionRunner.execute(() -> todoSwingView.tagAdded(tag));
+		
+		String[] tagList = tagsPanel.list("tagsTagList").contents();
+		assertThat(tagList).containsExactly("(1) Work");
+	}
+	
+	@Test @GUITest
+	public void testTagErrorMessageLabel() {
+		getTagsPanel();
+		
+		String errorMessage = "This is an error message";
+		
+		GuiActionRunner.execute(() -> todoSwingView.tagError(errorMessage));
+		tagsPanel.label("tagsErrorLabel").requireText(errorMessage);
+	}
+	
+	@Test @GUITest
+	public void testTagAdditionRemovesErrorMessage() {
+		getTagsPanel();
+		
+		String errorMessage = "This is an error message";
+		Tag tag = new Tag("1", "Work");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.tagError(errorMessage);
+			todoSwingView.tagAdded(tag);
+		});
+		
+		tagsPanel.label("tagsErrorLabel").requireText(" ");
+	}
+	
+	@Test @GUITest
+	public void testSelectingTagFromListEnablesDeleteTagButton() {
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		
+		GuiActionRunner.execute(() -> todoSwingView.tagAdded(tag));
+		
+		tagsPanel.list("tagsTagList").clickItem(0);
+		tagsPanel.button("btnDeleteTag").requireEnabled();
+		tagsPanel.list("tagsTagList").clearSelection();
+		tagsPanel.button("btnDeleteTag").requireDisabled();
+	}
+	
+	@Test @GUITest
+	public void testDeleteTagButtonControllerInvocationWhenPressed() {
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		
+		GuiActionRunner.execute(() -> todoSwingView.tagAdded(tag));
+		
+		tagsPanel.list("tagsTagList").clickItem(0);
+		tagsPanel.button("btnDeleteTag").click();
+		
+		verify(todoController).removeTag(tag);
+	}
+	
+	@Test @GUITest
+	public void testTagDeletedRemovesFromTheTagList() {
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.tagAdded(tag);
+			todoSwingView.tagRemoved(tag);
+		});
+		
+		String[] tagList = tagsPanel.list("tagsTagList").contents();
+		assertThat(tagList).isEmpty();
+	}
+	
+	@Test @GUITest
+	public void testTagDeletedRemovesErrorMessage() {
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.tagAdded(tag);
+			todoSwingView.tagError("This is an error message");
+			todoSwingView.tagRemoved(tag);
+		});
+		
+		tagsPanel.label("tagsErrorLabel").requireText(" ");
+	}
+	
+	@Test @GUITest
+	public void testShowAllTagsAddsToTheTagList() {
+		getTagsPanel();
+		
+		Tag firstTag = new Tag("1", "Work");
+		Tag secondTag = new Tag("2", "Important");
+		
+		GuiActionRunner.execute(() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag)));
+		
+		String[] tagList = tagsPanel.list("tagsTagList").contents();
+		assertThat(tagList).containsExactly("(1) Work", "(2) Important");
+	}
+	
+	@Test @GUITest
+	public void testControllerInvocationWithTagListSelection() {
+		getTagsPanel();
+		
+		Tag firstTag = new Tag("1", "Work");
+		Tag secondTag = new Tag("2", "Important");
+		
+		GuiActionRunner.execute(() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag)));
+		
+		tagsPanel.list("tagsTagList").clickItem(0);
+		verify(todoController).getTasksByTag(firstTag);
+	}
+	
+	@Test @GUITest
+	public void testShowTagTasksAddsToAssignedTasksList() {
+		getTagsPanel();
+		
+		Task firstTask = new Task("1", "Buy groceries");
+		Task secondTask = new Task("2", "Start using TDD");
+		
+		GuiActionRunner.execute(() -> todoSwingView.showTagTasks(Arrays.asList(firstTask, secondTask)));
+		
+		String[] tasksList = tagsPanel.list("assignedTaskList").contents();
+		assertThat(tasksList).containsExactly("#1 - Buy groceries", "#2 - Start using TDD");
+	}
+	
+	
+	@Test @GUITest
+	public void testAssignedTasksListIsClearedWhenTagSelectionIsCleared() { 
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		Task task = new Task("1", "Start using TDD");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.showAllTags(Collections.singletonList(tag));
+			todoSwingView.showTagTasks(Collections.singletonList(task));
+		});
+		
+		tagsPanel.list("tagsTagList").clickItem(0);
+		tagsPanel.list("tagsTagList").clearSelection();
+		
+		String[] tasksList = tagsPanel.list("assignedTaskList").contents();
+		assertThat(tasksList).isEmpty();
+	}
+	
+	@Test @GUITest
+	public void testRemoveTaskButtonIsEnabledWhenTaskIsSelectedFromList() {
+		getTagsPanel();
+		
+		Task task = new Task("1", "Buy groceries");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.showTagTasks(Collections.singletonList(task));
+		});
+		
+		tagsPanel.list("assignedTaskList").clickItem(0);
+		tagsPanel.button("btnRemoveTask").requireEnabled();
+		tagsPanel.list("assignedTaskList").clearSelection();
+		tagsPanel.button("btnRemoveTask").requireDisabled();
+	}
+	
+	@Test @GUITest
+	public void testRemoveTaskButtonControllerInvocationWhenPressed() {
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		Task task = new Task("1", "Start using TDD");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.tagAdded(tag);
+			todoSwingView.showTagTasks(Collections.singletonList(task));
+		});
+		
+		tagsPanel.list("tagsTagList").clickItem(0);
+		tagsPanel.list("assignedTaskList").clickItem(0);
+		tagsPanel.button("btnRemoveTask").click();
+		
+		verify(todoController).removeTagFromTask(task, tag);
+	}
+	
+	@Test @GUITest
+	public void testTaskRemovedFromTagRemovesFromTheAssignedTaskList() {
+		getTagsPanel();
+		
+		Task task = new Task("1", "Buy groceries");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.showTagTasks(Collections.singletonList(task));
+			todoSwingView.taskRemovedFromTag(task);
+		});
+		
+		String[] assignedTasks = tagsPanel.list("assignedTaskList").contents();
+		assertThat(assignedTasks).isEmpty();
+	}
+	
+	@Test @GUITest
+	public void testTaskRemovedFromTagRemovesErrorMessage() {
+		getTagsPanel();
+		
+		Task task = new Task("1", "Buy groceries");
+		
+		GuiActionRunner.execute(() -> {
+			todoSwingView.taskAddedToTag(task);
+			todoSwingView.tagError("This is an error message");
+			todoSwingView.taskRemovedFromTag(task);
+		});
+		
+		assertThat(tagsPanel.label("tagsErrorLabel").text()).isEqualTo(" ");
 	}
 	
 	private void getTagsPanel() {

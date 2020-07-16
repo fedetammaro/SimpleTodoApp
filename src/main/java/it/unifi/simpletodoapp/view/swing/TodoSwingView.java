@@ -61,8 +61,10 @@ public class TodoSwingView extends JFrame implements TodoView {
 	private JTextField tagNameTextField;
 	private JButton btnAddTag;
 	private JList<TagViewModel> tagsTagList;
+	private TagListModel tagListModel = new TagListModel();
 	private JButton btnDeleteTag;
-	private JList<TaskViewModel> assignedTaskList;
+	private JList<TaskViewModel> assignedTasksList;
+	private TaskListModel assignedTasksListModel = new TaskListModel();
 	private JButton btnRemoveTask;
 	private JLabel tagsErrorLabel;
 	
@@ -240,7 +242,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 			}
 		});
 		
-		KeyAdapter btnAddEnabler = new KeyAdapter() {
+		KeyAdapter btnAddTaskEnabler = new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				btnAddTask.setEnabled(
@@ -249,8 +251,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 			}
 		};
 		
-		taskIdTextField.addKeyListener(btnAddEnabler);
-		taskDescriptionTextField.addKeyListener(btnAddEnabler);
+		taskIdTextField.addKeyListener(btnAddTaskEnabler);
+		taskDescriptionTextField.addKeyListener(btnAddTaskEnabler);
 
 		JSeparator tasksTabSeparator = new JSeparator();
 		tasksTabSeparator.setName("tasksTabSeparator");
@@ -474,6 +476,24 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcBtnAddTag.gridy = 3;
 		tagsPanel.add(btnAddTag, gbcBtnAddTag);
 		
+		btnAddTag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				todoController.addTag(new Tag(tagIdTextField.getText(), tagNameTextField.getText()));
+			}
+		});
+		
+		KeyAdapter btnAddTagEnabler = new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				btnAddTag.setEnabled(
+						!tagIdTextField.getText().trim().isEmpty()
+						&& !tagNameTextField.getText().trim().isEmpty());
+			}
+		};
+		
+		tagIdTextField.addKeyListener(btnAddTagEnabler);
+		tagNameTextField.addKeyListener(btnAddTagEnabler);
+		
 		JPanel tagsLeftSubPanel = new JPanel();
 		tagsLeftSubPanel.setName("tagsLeftSubPanel");
 		GridBagConstraints gbcTagsLeftSubPanel = new GridBagConstraints();
@@ -499,7 +519,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcTagsTagListLabel.gridy = 0;
 		tagsLeftSubPanel.add(tagsTagListLabel, gbcTagsTagListLabel);
 		
-		tagsTagList = new JList<>();
+		tagsTagList = new JList<>(tagListModel);
 		tagsTagList.setName("tagsTagList");
 		GridBagConstraints gbcTagsTagList = new GridBagConstraints();
 		gbcTagsTagList.insets = new Insets(0, 0, 5, 0);
@@ -509,6 +529,22 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcTagsTagList.gridy = 1;
 		tagsLeftSubPanel.add(tagsTagList, gbcTagsTagList);
 		
+		tagsTagList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				int tagIndex = tagsTagList.getSelectedIndex();
+				boolean isTagSelected = tagIndex != -1;
+				btnDeleteTag.setEnabled(isTagSelected);
+				
+				// Prevent multiple firings
+				if (!e.getValueIsAdjusting()) {
+					if (isTagSelected)
+						todoController.getTasksByTag(tagListModel.get(tagIndex).tag);
+					else
+						assignedTasksListModel.clear();
+				}
+			}
+		});
+		
 		btnDeleteTag = new JButton("Delete tag");
 		btnDeleteTag.setName("btnDeleteTag");
 		btnDeleteTag.setEnabled(false);
@@ -517,6 +553,13 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcBtnDeleteTag.gridx = 0;
 		gbcBtnDeleteTag.gridy = 2;
 		tagsLeftSubPanel.add(btnDeleteTag, gbcBtnDeleteTag);
+		
+		btnDeleteTag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Tag tag = tagListModel.get(tagsTagList.getSelectedIndex()).tag;
+				todoController.removeTag(tag);
+			}
+		});
 		
 		JPanel tagsRightSubPanel = new JPanel();
 		tagsRightSubPanel.setName("tagsRightSubPanel");
@@ -543,15 +586,21 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcTagsTaskListLabel.gridy = 0;
 		tagsRightSubPanel.add(tagsTaskListLabel, gbcTagsTaskListLabel);
 		
-		assignedTaskList = new JList<>();
-		assignedTaskList.setName("assignedTaskList");
+		assignedTasksList = new JList<>(assignedTasksListModel);
+		assignedTasksList.setName("assignedTaskList");
 		GridBagConstraints gbcAssignedTaskList = new GridBagConstraints();
 		gbcAssignedTaskList.insets = new Insets(0, 0, 5, 0);
 		gbcAssignedTaskList.gridwidth = 10;
 		gbcAssignedTaskList.fill = GridBagConstraints.BOTH;
 		gbcAssignedTaskList.gridx = 0;
 		gbcAssignedTaskList.gridy = 1;
-		tagsRightSubPanel.add(assignedTaskList, gbcAssignedTaskList);
+		tagsRightSubPanel.add(assignedTasksList, gbcAssignedTaskList);
+		
+		assignedTasksList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				btnRemoveTask.setEnabled(assignedTasksList.getSelectedIndex() != -1);
+			}
+		});
 		
 		btnRemoveTask = new JButton("Remove task");
 		btnRemoveTask.setName("btnRemoveTask");
@@ -563,8 +612,17 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcBtnRemoveTask.gridy = 2;
 		tagsRightSubPanel.add(btnRemoveTask, gbcBtnRemoveTask);
 		
+		btnRemoveTask.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Tag tag = tagListModel.get(tagsTagList.getSelectedIndex()).tag;
+				Task task = assignedTasksListModel.get(assignedTasksList.getSelectedIndex()).task;
+				todoController.removeTagFromTask(task, tag);
+			}
+		});
+		
 		tagsErrorLabel = new JLabel(" ");
 		tagsErrorLabel.setName("tagsErrorLabel");
+		tagsErrorLabel.setForeground(Color.RED);
 		GridBagConstraints gbcTagsErrorLabel = new GridBagConstraints();
 		gbcTagsErrorLabel.gridwidth = 4;
 		gbcTagsErrorLabel.insets = new Insets(0, 0, 0, 5);
@@ -597,23 +655,27 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void showAllTags(List<Tag> allTags) {
-		for (Tag tag : allTags)
+		allTags.stream().forEach(tag -> {
 			tagComboModel.addTag(tag);
+			tagListModel.addTag(tag);
+		});
 	}
 
 	@Override
 	public void tagAdded(Tag tag) {
-		// Method not yet implemented
+		tagListModel.addTag(tag);
+		tagsErrorLabel.setText(" ");
 	}
 
 	@Override
-	public void tagError(String string) {
-		// Method not yet implemented
+	public void tagError(String errorMessage) {
+		tagsErrorLabel.setText(errorMessage);
 	}
 
 	@Override
 	public void tagRemoved(Tag tag) {
-		// Method not yet implemented
+		tagListModel.removeTag(tag);
+		tagsErrorLabel.setText(" ");
 	}
 
 	@Override
@@ -623,7 +685,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void showTagTasks(List<Task> tasks) {
-		// Method not yet implemented
+		tasks.stream().forEach(task -> assignedTasksListModel.addTask(task));
 	}
 
 	@Override
@@ -634,8 +696,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void taskRemovedFromTag(Task task) {
-		// TODO Auto-generated method stub
-		
+		assignedTasksListModel.removeTask(task);
+		tagsErrorLabel.setText(" ");
 	}
 
 	@Override
