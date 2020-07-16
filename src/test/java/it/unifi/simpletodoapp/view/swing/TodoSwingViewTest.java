@@ -37,6 +37,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	
 	private JPanelFixture contentPanel;
 	private JPanelFixture tasksPanel;
+	private JPanelFixture tagsPanel;
 
 	@Override
 	protected void onSetUp() {
@@ -392,5 +393,29 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		});
 		
 		assertThat(tasksPanel.label("tasksErrorLabel").text()).isEqualTo(" ");
+	}
+	
+	@Test @GUITest
+	public void testTagTabControlsArePresent() {
+		getTagsPanel();
+		
+		tagsPanel.label("tagIdLabel");
+		tagsPanel.textBox("tagIdTextField");
+		tagsPanel.label("tagNameLabel");
+		tagsPanel.textBox("tagNameTextField");
+		tagsPanel.button("btnAddTag").requireDisabled();
+		tagsPanel.label("tagsTagListLabel");
+		tagsPanel.list("tagsTagList");
+		tagsPanel.button("btnDeleteTag").requireDisabled();
+		tagsPanel.label("tagsTaskListLabel");
+		tagsPanel.list("assignedTaskList");
+		tagsPanel.button("btnRemoveTask").requireDisabled();
+		tagsPanel.label("tagsErrorLabel");
+	}
+	
+	private void getTagsPanel() {
+		JTabbedPaneFixture tabPanel = contentPanel.tabbedPane("tabbedPane");
+		tabPanel.selectTab("Tags");
+		tagsPanel = contentPanel.panel("tagsPanel");
 	}
 }

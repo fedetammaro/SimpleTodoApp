@@ -57,6 +57,14 @@ public class TodoSwingView extends JFrame implements TodoView {
 	private TagListModel assignedTagsListModel = new TagListModel();
 	private JButton btnRemoveTag;
 	private JLabel tasksErrorLabel;
+	private JTextField tagIdTextField;
+	private JTextField tagNameTextField;
+	private JButton btnAddTag;
+	private JList<TagViewModel> tagsTagList;
+	private JButton btnDeleteTag;
+	private JList<TaskViewModel> assignedTaskList;
+	private JButton btnRemoveTask;
+	private JLabel tagsErrorLabel;
 	
 	static final class TaskViewModel {
 		private Task task;
@@ -173,9 +181,9 @@ public class TodoSwingView extends JFrame implements TodoView {
 		tasksPanel.setName("tasksPanel");
 		tabbedPane.addTab("Tasks", null, tasksPanel, null);
 		GridBagLayout gblTasksPanel = new GridBagLayout();
-		gblTasksPanel.columnWidths = new int[]{150, 200, 350, 0};
-		gblTasksPanel.rowHeights = new int[]{20, 20, 20, 25, 0, 0, 0, 0};
-		gblTasksPanel.columnWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gblTasksPanel.columnWidths = new int[]{130, 250, 20, 300, 0};
+		gblTasksPanel.rowHeights = new int[]{20, 20, 20, 25, 0, 0, 20, 0};
+		gblTasksPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		gblTasksPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
 		tasksPanel.setLayout(gblTasksPanel);
 
@@ -208,7 +216,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		taskDescriptionTextField = new JTextField();
 		taskDescriptionTextField.setName("tasksDescriptionTextField");
 		GridBagConstraints gbcTaskDescriptionTextField = new GridBagConstraints();
-		gbcTaskDescriptionTextField.gridwidth = 2;
+		gbcTaskDescriptionTextField.gridwidth = 3;
 		gbcTaskDescriptionTextField.insets = new Insets(0, 0, 5, 0);
 		gbcTaskDescriptionTextField.fill = GridBagConstraints.HORIZONTAL;
 		gbcTaskDescriptionTextField.gridx = 1;
@@ -221,7 +229,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		btnAddTask.setName("btnAddTask");
 		GridBagConstraints gbcBtnAddTask = new GridBagConstraints();
 		gbcBtnAddTask.insets = new Insets(0, 0, 5, 0);
-		gbcBtnAddTask.gridwidth = 3;
+		gbcBtnAddTask.gridwidth = 4;
 		gbcBtnAddTask.gridx = 0;
 		gbcBtnAddTask.gridy = 3;
 		tasksPanel.add(btnAddTask, gbcBtnAddTask);
@@ -248,7 +256,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		tasksTabSeparator.setName("tasksTabSeparator");
 		GridBagConstraints gbcTasksTabSeparator = new GridBagConstraints();
 		gbcTasksTabSeparator.insets = new Insets(0, 0, 5, 0);
-		gbcTasksTabSeparator.gridwidth = 3;
+		gbcTasksTabSeparator.gridwidth = 4;
 		gbcTasksTabSeparator.gridx = 0;
 		gbcTasksTabSeparator.gridy = 4;
 		tasksPanel.add(tasksTabSeparator, gbcTasksTabSeparator);
@@ -263,8 +271,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcTasksLeftSubPanel.gridy = 5;
 		tasksPanel.add(tasksLeftSubPanel, gbcTasksLeftSubPanel);
 		GridBagLayout gblTasksLeftSubPanel = new GridBagLayout();
-		gblTasksLeftSubPanel.columnWidths = new int[]{34, 34, 34, 34, 34, 34, 34, 34, 34, 34};
-		gblTasksLeftSubPanel.rowHeights = new int[]{20, 320, 0, 0};
+		gblTasksLeftSubPanel.columnWidths = new int[]{37, 37, 37, 37, 37, 37, 37, 37, 37, 37};
+		gblTasksLeftSubPanel.rowHeights = new int[]{20, 320, 25, 0};
 		gblTasksLeftSubPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 		gblTasksLeftSubPanel.rowWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
 		tasksLeftSubPanel.setLayout(gblTasksLeftSubPanel);
@@ -328,11 +336,11 @@ public class TodoSwingView extends JFrame implements TodoView {
 		GridBagConstraints gbcTasksRightSubPanel = new GridBagConstraints();
 		gbcTasksRightSubPanel.insets = new Insets(0, 0, 5, 0);
 		gbcTasksRightSubPanel.fill = GridBagConstraints.BOTH;
-		gbcTasksRightSubPanel.gridx = 2;
+		gbcTasksRightSubPanel.gridx = 3;
 		gbcTasksRightSubPanel.gridy = 5;
 		tasksPanel.add(tasksRightSubPanel, gbcTasksRightSubPanel);
 		GridBagLayout gblTasksRightSubPanel = new GridBagLayout();
-		gblTasksRightSubPanel.columnWidths = new int[]{34, 34, 34, 34, 34, 34, 34, 34, 34, 34};
+		gblTasksRightSubPanel.columnWidths = new int[]{30, 30, 30, 30, 30, 30, 30, 30, 30, 30};
 		gblTasksRightSubPanel.rowHeights = new int[]{25, 25, 290, 25, 0};
 		gblTasksRightSubPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 		gblTasksRightSubPanel.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
@@ -388,8 +396,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 		btnRemoveTag.setEnabled(false);
 		btnRemoveTag.setName("btnRemoveTag");
 		GridBagConstraints gbcBtnRemoveTag = new GridBagConstraints();
-		gbcBtnRemoveTag.gridwidth = 9;
-		gbcBtnRemoveTag.gridx = 1;
+		gbcBtnRemoveTag.gridwidth = 10;
+		gbcBtnRemoveTag.gridx = 0;
 		gbcBtnRemoveTag.gridy = 3;
 		tasksRightSubPanel.add(btnRemoveTag, gbcBtnRemoveTag);
 		
@@ -405,8 +413,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		tasksErrorLabel.setName("tasksErrorLabel");
 		tasksErrorLabel.setForeground(Color.RED);
 		GridBagConstraints gbcTasksErrorLabel = new GridBagConstraints();
-		gbcTasksErrorLabel.gridwidth = 3;
-		gbcTasksErrorLabel.insets = new Insets(0, 0, 0, 5);
+		gbcTasksErrorLabel.gridwidth = 4;
 		gbcTasksErrorLabel.gridx = 0;
 		gbcTasksErrorLabel.gridy = 6;
 		tasksPanel.add(tasksErrorLabel, gbcTasksErrorLabel);
@@ -414,6 +421,156 @@ public class TodoSwingView extends JFrame implements TodoView {
 		JPanel tagsPanel = new JPanel();
 		tagsPanel.setName("tagsPanel");
 		tabbedPane.addTab("Tags", null, tagsPanel, null);
+		GridBagLayout gblTagsPanel = new GridBagLayout();
+		gblTagsPanel.columnWidths = new int[]{80, 200, 20, 400, 0};
+		gblTagsPanel.rowHeights = new int[]{20, 20, 0, 25, 0, 20, 0};
+		gblTagsPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gblTagsPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		tagsPanel.setLayout(gblTagsPanel);
+		
+		JLabel tagIdLabel = new JLabel("id");
+		tagIdLabel.setName("tagIdLabel");
+		GridBagConstraints gbcTagIdLabel = new GridBagConstraints();
+		gbcTagIdLabel.insets = new Insets(0, 0, 5, 5);
+		gbcTagIdLabel.gridx = 0;
+		gbcTagIdLabel.gridy = 1;
+		tagsPanel.add(tagIdLabel, gbcTagIdLabel);
+		
+		tagIdTextField = new JTextField();
+		tagIdTextField.setName("tagIdTextField");
+		GridBagConstraints gbcTagIdTextField = new GridBagConstraints();
+		gbcTagIdTextField.fill = GridBagConstraints.HORIZONTAL;
+		gbcTagIdTextField.insets = new Insets(0, 0, 5, 5);
+		gbcTagIdTextField.gridx = 1;
+		gbcTagIdTextField.gridy = 1;
+		tagsPanel.add(tagIdTextField, gbcTagIdTextField);
+		tagIdTextField.setColumns(10);
+		
+		JLabel tagNameLabel = new JLabel("name");
+		tagNameLabel.setName("tagNameLabel");
+		GridBagConstraints gbcTagNameLabel = new GridBagConstraints();
+		gbcTagNameLabel.insets = new Insets(0, 0, 5, 5);
+		gbcTagNameLabel.gridx = 0;
+		gbcTagNameLabel.gridy = 2;
+		tagsPanel.add(tagNameLabel, gbcTagNameLabel);
+		
+		tagNameTextField = new JTextField();
+		tagNameTextField.setName("tagNameTextField");
+		GridBagConstraints gbcTagNameTextField = new GridBagConstraints();
+		gbcTagNameTextField.insets = new Insets(0, 0, 5, 5);
+		gbcTagNameTextField.fill = GridBagConstraints.HORIZONTAL;
+		gbcTagNameTextField.gridx = 1;
+		gbcTagNameTextField.gridy = 2;
+		tagsPanel.add(tagNameTextField, gbcTagNameTextField);
+		tagNameTextField.setColumns(10);
+		
+		btnAddTag = new JButton("Add tag");
+		btnAddTag.setName("btnAddTag");
+		btnAddTag.setEnabled(false);
+		GridBagConstraints gbcBtnAddTag = new GridBagConstraints();
+		gbcBtnAddTag.insets = new Insets(0, 0, 5, 5);
+		gbcBtnAddTag.gridwidth = 2;
+		gbcBtnAddTag.gridx = 0;
+		gbcBtnAddTag.gridy = 3;
+		tagsPanel.add(btnAddTag, gbcBtnAddTag);
+		
+		JPanel tagsLeftSubPanel = new JPanel();
+		tagsLeftSubPanel.setName("tagsLeftSubPanel");
+		GridBagConstraints gbcTagsLeftSubPanel = new GridBagConstraints();
+		gbcTagsLeftSubPanel.gridwidth = 2;
+		gbcTagsLeftSubPanel.insets = new Insets(0, 0, 5, 5);
+		gbcTagsLeftSubPanel.fill = GridBagConstraints.BOTH;
+		gbcTagsLeftSubPanel.gridx = 0;
+		gbcTagsLeftSubPanel.gridy = 4;
+		tagsPanel.add(tagsLeftSubPanel, gbcTagsLeftSubPanel);
+		GridBagLayout gblTagsLeftSubPanel = new GridBagLayout();
+		gblTagsLeftSubPanel.columnWidths = new int[]{29, 29, 29, 29, 29, 29, 29, 29, 29, 29};
+		gblTagsLeftSubPanel.rowHeights = new int[]{20, 0, 25, 0};
+		gblTagsLeftSubPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gblTagsLeftSubPanel.rowWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+		tagsLeftSubPanel.setLayout(gblTagsLeftSubPanel);
+		
+		JLabel tagsTagListLabel = new JLabel("Tag List");
+		tagsTagListLabel.setName("tagsTagListLabel");
+		GridBagConstraints gbcTagsTagListLabel = new GridBagConstraints();
+		gbcTagsTagListLabel.insets = new Insets(0, 0, 5, 0);
+		gbcTagsTagListLabel.gridwidth = 10;
+		gbcTagsTagListLabel.gridx = 0;
+		gbcTagsTagListLabel.gridy = 0;
+		tagsLeftSubPanel.add(tagsTagListLabel, gbcTagsTagListLabel);
+		
+		tagsTagList = new JList<>();
+		tagsTagList.setName("tagsTagList");
+		GridBagConstraints gbcTagsTagList = new GridBagConstraints();
+		gbcTagsTagList.insets = new Insets(0, 0, 5, 0);
+		gbcTagsTagList.gridwidth = 10;
+		gbcTagsTagList.fill = GridBagConstraints.BOTH;
+		gbcTagsTagList.gridx = 0;
+		gbcTagsTagList.gridy = 1;
+		tagsLeftSubPanel.add(tagsTagList, gbcTagsTagList);
+		
+		btnDeleteTag = new JButton("Delete tag");
+		btnDeleteTag.setName("btnDeleteTag");
+		btnDeleteTag.setEnabled(false);
+		GridBagConstraints gbcBtnDeleteTag = new GridBagConstraints();
+		gbcBtnDeleteTag.gridwidth = 10;
+		gbcBtnDeleteTag.gridx = 0;
+		gbcBtnDeleteTag.gridy = 2;
+		tagsLeftSubPanel.add(btnDeleteTag, gbcBtnDeleteTag);
+		
+		JPanel tagsRightSubPanel = new JPanel();
+		tagsRightSubPanel.setName("tagsRightSubPanel");
+		GridBagConstraints gbcTagsRightSubPanel = new GridBagConstraints();
+		gbcTagsRightSubPanel.gridheight = 5;
+		gbcTagsRightSubPanel.insets = new Insets(0, 0, 5, 0);
+		gbcTagsRightSubPanel.fill = GridBagConstraints.BOTH;
+		gbcTagsRightSubPanel.gridx = 3;
+		gbcTagsRightSubPanel.gridy = 0;
+		tagsPanel.add(tagsRightSubPanel, gbcTagsRightSubPanel);
+		GridBagLayout gblTagsRightSubPanel = new GridBagLayout();
+		gblTagsRightSubPanel.columnWidths = new int[]{40, 40, 40, 40, 40, 40, 40, 40, 40, 40};
+		gblTagsRightSubPanel.rowHeights = new int[]{0, 0, 25, 0};
+		gblTagsRightSubPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+		gblTagsRightSubPanel.rowWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+		tagsRightSubPanel.setLayout(gblTagsRightSubPanel);
+		
+		JLabel tagsTaskListLabel = new JLabel("Tasks with this tag");
+		tagsTaskListLabel.setName("tagsTaskListLabel");
+		GridBagConstraints gbcTagsTaskListLabel = new GridBagConstraints();
+		gbcTagsTaskListLabel.insets = new Insets(0, 0, 5, 0);
+		gbcTagsTaskListLabel.gridwidth = 10;
+		gbcTagsTaskListLabel.gridx = 0;
+		gbcTagsTaskListLabel.gridy = 0;
+		tagsRightSubPanel.add(tagsTaskListLabel, gbcTagsTaskListLabel);
+		
+		assignedTaskList = new JList<>();
+		assignedTaskList.setName("assignedTaskList");
+		GridBagConstraints gbcAssignedTaskList = new GridBagConstraints();
+		gbcAssignedTaskList.insets = new Insets(0, 0, 5, 0);
+		gbcAssignedTaskList.gridwidth = 10;
+		gbcAssignedTaskList.fill = GridBagConstraints.BOTH;
+		gbcAssignedTaskList.gridx = 0;
+		gbcAssignedTaskList.gridy = 1;
+		tagsRightSubPanel.add(assignedTaskList, gbcAssignedTaskList);
+		
+		btnRemoveTask = new JButton("Remove task");
+		btnRemoveTask.setName("btnRemoveTask");
+		btnRemoveTask.setEnabled(false);
+		GridBagConstraints gbcBtnRemoveTask = new GridBagConstraints();
+		gbcBtnRemoveTask.gridwidth = 10;
+		gbcBtnRemoveTask.insets = new Insets(0, 0, 0, 5);
+		gbcBtnRemoveTask.gridx = 0;
+		gbcBtnRemoveTask.gridy = 2;
+		tagsRightSubPanel.add(btnRemoveTask, gbcBtnRemoveTask);
+		
+		tagsErrorLabel = new JLabel(" ");
+		tagsErrorLabel.setName("tagsErrorLabel");
+		GridBagConstraints gbcTagsErrorLabel = new GridBagConstraints();
+		gbcTagsErrorLabel.gridwidth = 4;
+		gbcTagsErrorLabel.insets = new Insets(0, 0, 0, 5);
+		gbcTagsErrorLabel.gridx = 0;
+		gbcTagsErrorLabel.gridy = 5;
+		tagsPanel.add(tagsErrorLabel, gbcTagsErrorLabel);
 	}
 
 	@Override
