@@ -21,7 +21,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
         run: >
-          mvn -s settings.xml -B clean verify org.pitest:pitest-maven:mutationCoverage
+          xvfb-run --server-args="-screen 0, 1280x720x24" -a mvn -s settings.xml -B clean verify org.pitest:pitest-maven:mutationCoverage
           sonar:sonar coveralls:report -DrepoToken=$COVERALLS_TOKEN -Pjacoco
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

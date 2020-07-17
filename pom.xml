@@ -19,9 +19,10 @@
 		<sonar.version>3.7.0.1746</sonar.version>
 		<coveralls.version>4.3.0</coveralls.version>
 		<pitest.version>1.5.2</pitest.version>
-		<assertj.version>3.16.1</assertj.version>
 		<mongoserver.version>1.33.0</mongoserver.version>
 		<mongodriver.version>3.12.6</mongodriver.version>
+		<logback.version>1.2.3</logback.version>
+		<assertj-swing.version>3.9.2</assertj-swing.version>
 	</properties>
 
 	<dependencies>
@@ -37,13 +38,6 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<version>${mockito.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<version>${assertj.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/de.bwaldvogel/mongo-java-server -->
@@ -63,9 +57,17 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.2.3</version>
+			<version>${logback.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.assertj/assertj-swing-junit -->
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-swing-junit</artifactId>
+			<version>${assertj-swing.version}</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -89,9 +91,14 @@
 						<excludedClasses>
 							<param>*Test</param>
 							<param>it.unifi.simpletodoapp.model.*</param>
+							<param>it.unifi.simpletodoapp.view.*</param>
 						</excludedClasses>
+						<excludedTestClasses>
+							<!-- Excluding UI tests since it can't use xvfb and always fails -->
+							<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
+						</excludedTestClasses>
 						<mutators>
-							<mutator>DEFAULTS</mutator>
+							<mutator>STRONGER</mutator>
 						</mutators>
 						<mutationThreshold>100</mutationThreshold>
 					</configuration>

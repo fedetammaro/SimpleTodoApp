@@ -111,13 +111,17 @@ public class TodoServiceTest {
 	public void testDeleteTask() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
+		when(taskRepository.getTagsByTaskId(task.getId()))
+			.thenReturn(Collections.singletonList("1"));
 
 		// Exercise phase
 		todoService.deleteTask(task);
 
 		// Verify phase
-		InOrder inOrder = inOrder(transactionManager, taskRepository);
-		inOrder.verify(transactionManager).doTaskTransaction(any());
+		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
+		inOrder.verify(transactionManager).doCompositeTransaction(any());
+		inOrder.verify(taskRepository).getTagsByTaskId(task.getId());
+		inOrder.verify(tagRepository).removeTaskFromTag("1", task.getId());
 		inOrder.verify(taskRepository).delete(task);
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -181,13 +185,17 @@ public class TodoServiceTest {
 	public void testDeleteTag() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
+		when(tagRepository.getTasksByTagId(tag.getId()))
+			.thenReturn(Collections.singletonList("1"));
 		
 		// Exercise phase
 		todoService.deleteTag(tag);
 		
 		// Verify phase
-		InOrder inOrder = inOrder(transactionManager, tagRepository);
-		inOrder.verify(transactionManager).doTagTransaction(any());
+		InOrder inOrder = inOrder(transactionManager, tagRepository, taskRepository);
+		inOrder.verify(transactionManager).doCompositeTransaction(any());
+		inOrder.verify(tagRepository).getTasksByTagId(tag.getId());
+		inOrder.verify(taskRepository).removeTagFromTask("1", tag.getId());
 		inOrder.verify(tagRepository).delete(tag);
 		inOrder.verifyNoMoreInteractions();
 	}
