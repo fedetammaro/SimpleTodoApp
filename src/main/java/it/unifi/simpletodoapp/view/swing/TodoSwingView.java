@@ -18,7 +18,6 @@ import java.awt.GridBagLayout;
 import javax.swing.JLabel;
 import java.awt.GridBagConstraints;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
 
 import java.awt.Insets;
 
@@ -140,17 +139,9 @@ public class TodoSwingView extends JFrame implements TodoView {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					UIManager.setLookAndFeel(
-							UIManager.getCrossPlatformLookAndFeelClassName());
-					TodoSwingView frame = new TodoSwingView();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
+		EventQueue.invokeLater(() -> {
+			TodoSwingView frame = new TodoSwingView();
+			frame.setVisible(true);
 		});
 	}
 
