@@ -98,7 +98,7 @@
 							<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
 						</excludedTestClasses>
 						<mutators>
-							<mutator>DEFAULTS</mutator>
+							<mutator>STRONGER</mutator>
 						</mutators>
 						<mutationThreshold>100</mutationThreshold>
 					</configuration>
