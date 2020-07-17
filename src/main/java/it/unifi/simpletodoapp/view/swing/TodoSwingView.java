@@ -80,7 +80,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		public boolean equals(Object object) {
 			TaskViewModel taskViewModel = (TaskViewModel) object;
 
-			return taskViewModel.task.equals(this.task);
+			return taskViewModel != null && taskViewModel.task.equals(this.task);
 		}
 	}
 
@@ -112,7 +112,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		public boolean equals(Object object) {
 			TagViewModel tagViewModel = (TagViewModel) object;
 
-			return tagViewModel.tag.equals(this.tag);
+			return tagViewModel != null && tagViewModel.tag.equals(this.tag);
 		}
 	}
 
