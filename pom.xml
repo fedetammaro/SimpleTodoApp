@@ -23,6 +23,11 @@
 		<mongodriver.version>3.12.6</mongodriver.version>
 		<logback.version>1.2.3</logback.version>
 		<assertj-swing.version>3.9.2</assertj-swing.version>
+		<testcontainers.version>1.14.3</testcontainers.version>
+		<!-- All plugins versions are listed below -->
+		<buildhelper.version>3.2.0</buildhelper.version>
+		<failsafe.version>2.22.2</failsafe.version>
+		<jacoco.version>0.8.5</jacoco.version>
 	</properties>
 
 	<dependencies>
@@ -67,7 +72,13 @@
 			<version>${assertj-swing.version}</version>
 			<scope>test</scope>
 		</dependency>
-
+		<!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+			<version>${testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -83,28 +94,62 @@
 					<artifactId>coveralls-maven-plugin</artifactId>
 					<version>${coveralls.version}</version>
 				</plugin>
-				<plugin>
-					<groupId>org.pitest</groupId>
-					<artifactId>pitest-maven</artifactId>
-					<version>${pitest.version}</version>
-					<configuration>
-						<excludedClasses>
-							<param>*Test</param>
-							<param>it.unifi.simpletodoapp.model.*</param>
-							<param>it.unifi.simpletodoapp.view.*</param>
-						</excludedClasses>
-						<excludedTestClasses>
-							<!-- Excluding UI tests since it can't use xvfb and always fails -->
-							<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
-						</excludedTestClasses>
-						<mutators>
-							<mutator>STRONGER</mutator>
-						</mutators>
-						<mutationThreshold>100</mutationThreshold>
-					</configuration>
-				</plugin>
 			</plugins>
 		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.pitest</groupId>
+				<artifactId>pitest-maven</artifactId>
+				<version>${pitest.version}</version>
+				<configuration>
+					<excludedClasses>
+						<param>*Test</param>
+						<param>it.unifi.simpletodoapp.model.*</param>
+						<param>it.unifi.simpletodoapp.view.*</param>
+					</excludedClasses>
+					<excludedTestClasses>
+						<!-- Excluding UI tests since it can't use xvfb and always fails -->
+						<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
+					</excludedTestClasses>
+					<mutators>
+						<mutator>STRONGER</mutator>
+					</mutators>
+					<mutationThreshold>100</mutationThreshold>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>${buildhelper.version}</version>
+				<executions>
+					<execution>
+						<id>add-test-source</id>
+						<phase>generate-test-sources</phase>
+						<goals>
+							<goal>add-test-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/it/java</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>${failsafe.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
 
 	<profiles>
@@ -115,7 +160,7 @@
 					<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
-						<version>0.8.5</version>
+						<version>${jacoco.version}</version>
 						<executions>
 							<execution>
 								<goals>
