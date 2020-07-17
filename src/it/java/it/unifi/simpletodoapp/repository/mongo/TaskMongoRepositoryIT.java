@@ -27,7 +27,7 @@ public class TaskMongoRepositoryIT {
 	@SuppressWarnings("rawtypes")
 	@ClassRule
 	public static final GenericContainer mongoContainer =
-	new GenericContainer("mongo:4.2.3").withExposedPorts(27017);
+	new GenericContainer("mongo").withExposedPorts(27017);
 
 	private MongoClient mongoClient;
 	private TaskMongoRepository taskMongoRepository;
