@@ -105,6 +105,8 @@
 					<excludedClasses>
 						<param>*Test</param>
 						<param>it.unifi.simpletodoapp.view.*</param>
+						<!-- Removed since there are no unit tests for this class (only IT are possible) -->
+						<param>it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo</param>
 					</excludedClasses>
 					<targetTests>
 						<param>it.unifi.simpletodoapp.*Test</param>

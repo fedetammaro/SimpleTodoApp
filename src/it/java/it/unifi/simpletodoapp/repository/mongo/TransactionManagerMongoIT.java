@@ -8,6 +8,7 @@ import java.util.stream.StreamSupport;
 
 import org.bson.Document;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -56,6 +57,12 @@ public class TransactionManagerMongoIT {
 	@After
 	public void tearDown() {
 		mongoClient.close();
+	}
+	
+
+	@AfterClass
+	public static void stopContainer() {
+		mongoContainer.stop();
 	}
 	
 	@Test
