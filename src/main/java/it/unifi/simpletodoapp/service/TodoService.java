@@ -10,6 +10,10 @@ import it.unifi.simpletodoapp.repository.TransactionManager;
 
 public class TodoService {
 	private TransactionManager transactionManager;
+	
+	public TodoService(TransactionManager transactionManager) {
+		this.transactionManager = transactionManager;
+	}
 
 	public List<Task> getAllTasks() {
 		return transactionManager.doTaskTransaction(TaskRepository::findAll);
