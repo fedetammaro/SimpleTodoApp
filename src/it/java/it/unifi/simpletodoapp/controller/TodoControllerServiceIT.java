@@ -22,6 +22,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
@@ -144,6 +145,57 @@ public class TodoControllerServiceIT {
 		verify(todoSwingView).tagRemoved(tag);
 	}
 	
+	@Test
+	public void testAddTagToTask() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.emptyList());
+		addTagToCollection(tag, Collections.emptyList());
+		
+		todoController.addTagToTask(task, tag);
+		assertThat(getTagsAssignedToTask(task)).containsExactly("1");
+		assertThat(getTasksAssignedToTag(tag)).containsExactly("1");
+		verify(todoSwingView).tagAddedToTask(tag);
+	}
+	
+	@Test
+	public void testRemoveTagFromTask() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		todoController.removeTagFromTask(task, tag);
+		
+		assertThat(getTagsAssignedToTask(task)).isEmpty();
+		assertThat(getTasksAssignedToTag(tag)).isEmpty();
+		verify(todoSwingView).tagRemovedFromTask(tag);
+	}
+	
+	@Test
+	public void testGetTagsByTask() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		todoController.getTagsByTask(task);
+		
+		verify(todoSwingView).showTaskTags(Collections.singletonList(tag));
+	}
+	
+	@Test
+	public void testGetTasksByTag() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		todoController.getTasksByTag(tag);
+		
+		verify(todoSwingView).showTagTasks(Collections.singletonList(task));
+	}
+	
 	private void addTaskToCollection(Task task, List<String> tags) {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
@@ -170,5 +222,19 @@ public class TodoControllerServiceIT {
 				.stream(tagCollection.find().spliterator(), false)
 				.map(d -> new Tag(d.getString("id"), d.getString("name")))
 				.collect(Collectors.toList());
+	}
+	
+	private List<String> getTagsAssignedToTask(Task task) {
+		return taskCollection
+				.find(Filters.eq("id", task.getId()))
+				.first()
+				.getList("tags", String.class);
+	}
+	
+	private List<String> getTasksAssignedToTag(Tag tag) {
+		return tagCollection
+				.find(Filters.eq("id", tag.getId()))
+				.first()
+				.getList("tasks", String.class);
 	}
 }
