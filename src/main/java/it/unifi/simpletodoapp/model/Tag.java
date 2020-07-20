@@ -20,11 +20,6 @@ public class Tag {
 	}
 	
 	@Override
-	public String toString() {
-		return "Tag{id='" + id + "',name='" + name + "'}";
-	}
-	
-	@Override
 	public int hashCode() {
 		return Objects.hash(id, name);
 	}

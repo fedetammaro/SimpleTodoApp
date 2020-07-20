@@ -28,6 +28,11 @@
 		<buildhelper.version>3.2.0</buildhelper.version>
 		<failsafe.version>2.22.2</failsafe.version>
 		<jacoco.version>0.8.5</jacoco.version>
+		
+		<!-- Remove the coverage of classes from Sonar -->
+		<sonar.coverage.exclusions>
+			it/unifi/simpletodoapp/model/*.*
+		</sonar.coverage.exclusions>
 	</properties>
 
 	<dependencies>
@@ -104,8 +109,10 @@
 				<configuration>
 					<excludedClasses>
 						<param>*Test</param>
+						<param>it.unifi.simpletodoapp.model.*</param>
 						<param>it.unifi.simpletodoapp.view.*</param>
-						<!-- Removed since there are no unit tests for this class (only IT are possible) -->
+						<!-- Removed since there are no unit tests for this class (only IT 
+							are possible) -->
 						<param>it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo</param>
 					</excludedClasses>
 					<targetTests>
@@ -165,6 +172,11 @@
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
 						<version>${jacoco.version}</version>
+						<configuration>
+							<excludes>
+								<exclude>it/unifi/simpletodoapp/model/*.*</exclude>
+							</excludes>
+						</configuration>
 						<executions>
 							<execution>
 								<goals>
