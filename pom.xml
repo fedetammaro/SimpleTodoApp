@@ -31,7 +31,8 @@
 		
 		<!-- Remove the coverage of classes from Sonar -->
 		<sonar.coverage.exclusions>
-			it/unifi/simpletodoapp/model/*.*
+			it/unifi/simpletodoapp/model/*.*, 
+			it/unifi/simpletodoapp/repository/mongo/TransactionManagerMongo.*
 		</sonar.coverage.exclusions>
 	</properties>
 
@@ -175,6 +176,7 @@
 						<configuration>
 							<excludes>
 								<exclude>it/unifi/simpletodoapp/model/*.*</exclude>
+								<exclude>it/unifi/simpletodoapp/repository/mongo/TransactionManagerMongo.*</exclude>
 							</excludes>
 						</configuration>
 						<executions>
