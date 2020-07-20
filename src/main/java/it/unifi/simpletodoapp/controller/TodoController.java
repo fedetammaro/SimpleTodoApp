@@ -11,7 +11,12 @@ import it.unifi.simpletodoapp.view.TodoView;
 public class TodoController {
 	private TodoService todoService;
 	private TodoView todoView;
-
+	
+	public TodoController(TodoService todoService, TodoView todoView) {
+		this.todoService = todoService;
+		this.todoView = todoView;
+	}
+	
 	public void getAllTasks() {
 		todoView.showAllTasks(todoService.getAllTasks());
 	}
