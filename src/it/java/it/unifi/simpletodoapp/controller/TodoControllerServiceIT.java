@@ -23,6 +23,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
+import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
 import it.unifi.simpletodoapp.repository.mongo.TaskMongoRepository;
@@ -47,6 +48,7 @@ public class TodoControllerServiceIT {
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
+	private MongoCollection<Document> tagCollection;
 
 	@Before
 	public void setup() {
@@ -66,6 +68,7 @@ public class TodoControllerServiceIT {
 
 		database.drop();
 		taskCollection = database.getCollection("tasks");
+		tagCollection = database.getCollection("tags");
 	}
 
 	@After
@@ -110,6 +113,37 @@ public class TodoControllerServiceIT {
 		verify(todoSwingView).taskDeleted(task);
 	}
 	
+	@Test
+	public void testGetAllTags() {
+		Tag tag = new Tag("1", "Work");
+		addTagToCollection(tag, Collections.emptyList());
+		
+		todoController.getAllTags();
+		
+		verify(todoSwingView).showAllTags(Collections.singletonList(tag));
+	}
+	
+	@Test
+	public void testAddTag() {
+		Tag tag = new Tag("1", "Work");
+		
+		todoController.addTag(tag);
+		
+		assertThat(getAllTagsFromDatabase()).containsExactly(tag);
+		verify(todoSwingView).tagAdded(tag);
+	}
+	
+	@Test
+	public void testDeleteTag() {
+		Tag tag = new Tag("1", "Work");
+		addTagToCollection(tag, Collections.emptyList());
+		
+		todoController.removeTag(tag);
+		
+		assertThat(getAllTagsFromDatabase()).isEmpty();
+		verify(todoSwingView).tagRemoved(tag);
+	}
+	
 	private void addTaskToCollection(Task task, List<String> tags) {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
@@ -117,10 +151,24 @@ public class TodoControllerServiceIT {
 				.append("tags", tags));
 	}
 	
+	private void addTagToCollection(Tag tag, List<String> tasks) {
+		tagCollection.insertOne(new Document()
+				.append("id", tag.getId())
+				.append("name", tag.getName())
+				.append("tasks", tasks));
+	}
+	
 	private List<Task> getAllTasksFromDatabase() {
 		return StreamSupport
 				.stream(taskCollection.find().spliterator(), false)
 				.map(d -> new Task(d.getString("id"), d.getString("description")))
+				.collect(Collectors.toList());
+	}
+	
+	private List<Tag> getAllTagsFromDatabase() {
+		return StreamSupport
+				.stream(tagCollection.find().spliterator(), false)
+				.map(d -> new Tag(d.getString("id"), d.getString("name")))
 				.collect(Collectors.toList());
 	}
 }
