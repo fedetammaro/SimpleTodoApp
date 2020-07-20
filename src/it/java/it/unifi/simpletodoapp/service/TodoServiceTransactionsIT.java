@@ -40,6 +40,7 @@ public class TodoServiceTransactionsIT {
 	private MongoClient mongoClient;
 	
 	private MongoCollection<Document> taskCollection;
+	private MongoCollection<Document> tagCollection;
 	
 	@Before
 	public void setup() {
@@ -56,6 +57,7 @@ public class TodoServiceTransactionsIT {
 
 		database.drop();
 		taskCollection = database.getCollection("tasks");
+		tagCollection = database.getCollection("tags");
 	}
 	
 	@After
@@ -112,6 +114,49 @@ public class TodoServiceTransactionsIT {
 		assertThat(getAllTasksFromDatabase()).isEmpty();
 	}
 	
+	@Test
+	public void testGetAllTags() {
+		Tag firstTag = new Tag("1", "Work");
+		Tag secondTag = new Tag("2", "Important");
+		addTagToCollection(firstTag, Collections.emptyList());
+		addTagToCollection(secondTag, Collections.emptyList());
+		
+		List<Tag> retrievedTags = todoService.getAllTags();
+		
+		assertThat(retrievedTags).containsExactly(firstTag, secondTag);
+	}
+	
+	@Test
+	public void testFindTagById() {
+		Tag firstTag = new Tag("1", "Work");
+		Tag secondTag = new Tag("2", "Important");
+		addTagToCollection(firstTag, Collections.emptyList());
+		addTagToCollection(secondTag, Collections.emptyList());
+		
+		Tag retrievedTag = todoService.findTagById(firstTag.getId());
+		
+		assertThat(retrievedTag).isEqualTo(firstTag);
+	}
+	
+	@Test
+	public void testSaveTag() {
+		Tag tag = new Tag("1", "Work");
+		
+		todoService.saveTag(tag);
+		
+		assertThat(getAllTagsFromDatabase()).containsExactly(tag);
+	}
+	
+	@Test
+	public void testDeleteTag() {
+		Tag tag = new Tag("1", "Work");
+		addTagToCollection(tag, Collections.emptyList());
+		
+		todoService.deleteTag(tag);
+		
+		assertThat(getAllTagsFromDatabase()).isEmpty();
+	}
+	
 	private void addTaskToCollection(Task task, List<Tag> tags) {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
@@ -119,10 +164,24 @@ public class TodoServiceTransactionsIT {
 				.append("tags", tags));
 	}
 	
+	private void addTagToCollection(Tag tag, List<Task> tasks) {
+		taskCollection.insertOne(new Document()
+				.append("id", tag.getId())
+				.append("name", tag.getName())
+				.append("tasks", tasks));
+	}
+	
 	private List<Task> getAllTasksFromDatabase() {
 		return StreamSupport
 				.stream(taskCollection.find().spliterator(), false)
 				.map(d -> new Task(d.getString("id"), d.getString("description")))
+				.collect(Collectors.toList());
+	}
+	
+	private List<Tag> getAllTagsFromDatabase() {
+		return StreamSupport
+				.stream(tagCollection.find().spliterator(), false)
+				.map(d -> new Tag(d.getString("id"), d.getString("name")))
 				.collect(Collectors.toList());
 	}
 }
