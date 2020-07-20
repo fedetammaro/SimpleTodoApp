@@ -104,9 +104,13 @@
 				<configuration>
 					<excludedClasses>
 						<param>*Test</param>
-						<param>it.unifi.simpletodoapp.model.*</param>
 						<param>it.unifi.simpletodoapp.view.*</param>
+						<!-- Removed since there are no unit tests for this class (only IT are possible) -->
+						<param>it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo</param>
 					</excludedClasses>
+					<targetTests>
+						<param>it.unifi.simpletodoapp.*Test</param>
+					</targetTests>
 					<excludedTestClasses>
 						<!-- Excluding UI tests since it can't use xvfb and always fails -->
 						<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
