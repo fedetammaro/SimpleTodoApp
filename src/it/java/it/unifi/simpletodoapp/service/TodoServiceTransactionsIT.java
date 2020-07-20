@@ -19,6 +19,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
@@ -157,15 +158,65 @@ public class TodoServiceTransactionsIT {
 		assertThat(getAllTagsFromDatabase()).isEmpty();
 	}
 	
-	private void addTaskToCollection(Task task, List<Tag> tags) {
+	@Test
+	public void testAddTagToTask() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.emptyList());
+		addTagToCollection(tag, Collections.emptyList());
+		
+		todoService.addTagToTask(task.getId(), tag.getId());
+		
+		assertThat(getTagsAssignedToTask(task)).containsExactly(tag.getId());
+		assertThat(getTasksAssignedToTag(tag)).containsExactly(task.getId());
+	}
+	
+	@Test
+	public void testFindTagsByTaskId() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		List<String> retrievedTags = todoService.findTagsByTaskId(task.getId());
+		
+		assertThat(retrievedTags).containsExactly("1");
+	}
+	
+	@Test
+	public void testRemoveTagFromTask() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		todoService.removeTagFromTask(task.getId(), tag.getId());
+		
+		assertThat(getTagsAssignedToTask(task)).isEmpty();
+		assertThat(getTasksAssignedToTag(tag)).isEmpty();
+	}
+	
+	@Test
+	public void testFindTasksByTagId() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		List<String> retrievedTasks = todoService.findTasksByTagId(tag.getId());
+		
+		assertThat(retrievedTasks).containsExactly("1");
+	}
+	
+	private void addTaskToCollection(Task task, List<String> tags) {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
 				.append("description", task.getDescription())
 				.append("tags", tags));
 	}
 	
-	private void addTagToCollection(Tag tag, List<Task> tasks) {
-		taskCollection.insertOne(new Document()
+	private void addTagToCollection(Tag tag, List<String> tasks) {
+		tagCollection.insertOne(new Document()
 				.append("id", tag.getId())
 				.append("name", tag.getName())
 				.append("tasks", tasks));
@@ -183,5 +234,19 @@ public class TodoServiceTransactionsIT {
 				.stream(tagCollection.find().spliterator(), false)
 				.map(d -> new Tag(d.getString("id"), d.getString("name")))
 				.collect(Collectors.toList());
+	}
+	
+	private List<String> getTagsAssignedToTask(Task task) {
+		return taskCollection
+				.find(Filters.eq("id", task.getId()))
+				.first()
+				.getList("tags", String.class);
+	}
+	
+	private List<String> getTasksAssignedToTag(Tag tag) {
+		return tagCollection
+				.find(Filters.eq("id", tag.getId()))
+				.first()
+				.getList("tasks", String.class);
 	}
 }
