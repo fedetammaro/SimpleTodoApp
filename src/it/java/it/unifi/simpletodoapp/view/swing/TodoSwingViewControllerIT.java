@@ -367,6 +367,53 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 			.containsExactly("#1 - Start using TDD");
 	}
 	
+	
+	@Test @GUITest
+	public void testRemoveTaskButtonRemovesTaskFromTagSuccessfully() {
+		getTagsPanel();
+		
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		GuiActionRunner.execute(() -> {
+			todoController.getAllTasks();
+			todoController.getAllTags();
+		});
+		
+		tagsPanel.list("tagsTagList").selectItem(0);
+		tagsPanel.list("assignedTasksList").selectItem(0);
+		tagsPanel.button("btnRemoveTask").click();
+		
+		assertThat(tagsPanel.list("assignedTasksList").contents()).isEmpty();
+	}
+	
+	@Test @GUITest
+	public void testRemoveTaskButtonThrowsError() {
+		getTagsPanel();
+		
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		GuiActionRunner.execute(() -> {
+			todoController.getAllTasks();
+			todoController.getAllTags();
+		});
+		
+		tagsPanel.list("tagsTagList").selectItem(0);
+		tagsPanel.list("assignedTasksList").selectItem(0);
+		
+		tagMongoRepository.removeTaskFromTag(tag.getId(), task.getId());
+		
+		tagsPanel.button("btnRemoveTask").click();
+		
+		assertThat(tagsPanel.label("tagsErrorLabel").text())
+			.isEqualTo("No task with ID " + task.getId() + " assigned to tag with ID " + tag.getId());
+	}
+	
 	private void addTaskToCollection(Task task, List<String> tags) {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
