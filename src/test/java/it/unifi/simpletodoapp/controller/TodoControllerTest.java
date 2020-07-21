@@ -312,7 +312,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoService).findTagsByTaskId(task.getId());
 		inOrder.verify(todoService, never()).addTagToTask(any(), any());
 		inOrder.verify(todoView, never()).tagAddedToTask(tag);
-		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + 
+		inOrder.verify(todoView).taskError("Tag with ID " + tag.getId() + 
 				" is already assigned to task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -424,7 +424,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoService).findTagsByTaskId(task.getId());
 		inOrder.verify(todoService, never()).removeTagFromTask(any(), any());
 		inOrder.verify(todoView, never()).tagRemovedFromTask(tag);
-		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId() +
+		inOrder.verify(todoView).taskError("No tag with ID " + tag.getId() +
 				" assigned to task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}

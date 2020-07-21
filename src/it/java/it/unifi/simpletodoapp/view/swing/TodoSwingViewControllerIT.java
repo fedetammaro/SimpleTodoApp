@@ -24,6 +24,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import it.unifi.simpletodoapp.controller.TodoController;
+import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
 import it.unifi.simpletodoapp.repository.mongo.TaskMongoRepository;
@@ -50,6 +51,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	private MongoClient mongoClient;
 	
 	private MongoCollection<Document> taskCollection;
+	private MongoCollection<Document> tagCollection;
 	
 	@Override
 	public void onSetUp() {
@@ -64,6 +66,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 
 		database.drop();
 		taskCollection = database.getCollection("tasks");
+		tagCollection = database.getCollection("tags");
 		
 		GuiActionRunner.execute(() -> {
 			todoService = new TodoService(transactionManagerMongo);
@@ -160,10 +163,114 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 			.isEqualTo("Task with ID " + task.getId() + " has already been removed");
 	}
 	
+	@Test @GUITest
+	public void testAssignTagButtonAssignsSuccessfully() {
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(new Task("1", "Start using TDD"), Collections.emptyList());
+		addTagToCollection(tag, Collections.emptyList());
+		
+		GuiActionRunner.execute(() -> {
+			todoController.getAllTasks();
+			todoController.getAllTags();
+		});
+		
+		tasksPanel.list("tasksTaskList").selectItem(0);
+		tasksPanel.button("btnAssignTag").click();
+		
+		assertThat(tasksPanel.list("assignedTagsList").contents())
+			.containsExactly("(1) Work");
+	}
+	
+	@Test @GUITest
+	public void testAssignTagButtonThrowsError() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		GuiActionRunner.execute(() -> {
+			todoController.getAllTasks();
+			todoController.getAllTags();
+		});
+		
+		tasksPanel.list("tasksTaskList").selectItem(0);
+		tasksPanel.button("btnAssignTag").click();
+		
+		assertThat(tasksPanel.label("tasksErrorLabel").text())
+			.isEqualTo("Tag with ID " + tag.getId() + " is already assigned to task with ID " + task.getId());
+	}
+	
+	@Test @GUITest
+	public void testClickOnTaskShowsAssignedTags() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		GuiActionRunner.execute(() -> {
+			todoController.getAllTasks();
+			todoController.getAllTags();
+		});
+		
+		tasksPanel.list("tasksTaskList").selectItem(0);
+		
+		assertThat(tasksPanel.list("assignedTagsList").contents())
+			.containsExactly("(1) Work");
+	}
+	
+	@Test @GUITest
+	public void testRemoveTagButtonRemovesTagFromTaskSuccessfully() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		GuiActionRunner.execute(() -> {
+			todoController.getAllTasks();
+			todoController.getAllTags();
+		});
+		
+		tasksPanel.list("tasksTaskList").selectItem(0);
+		tasksPanel.list("assignedTagsList").selectItem(0);
+		tasksPanel.button("btnRemoveTag").click();
+		
+		assertThat(tasksPanel.list("assignedTagsList").contents()).isEmpty();
+	}
+	
+	@Test @GUITest
+	public void testRemoveTagButtonThrowsError() {
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		addTaskToCollection(task, Collections.singletonList(tag.getId()));
+		addTagToCollection(tag, Collections.singletonList(task.getId()));
+		
+		GuiActionRunner.execute(() -> {
+			todoController.getAllTasks();
+			todoController.getAllTags();
+		});
+		
+		tasksPanel.list("tasksTaskList").selectItem(0);
+		tasksPanel.list("assignedTagsList").selectItem(0);
+		
+		taskMongoRepository.removeTagFromTask(task.getId(), tag.getId());
+		
+		tasksPanel.button("btnRemoveTag").click();
+		
+		assertThat(tasksPanel.label("tasksErrorLabel").text())
+			.isEqualTo("No tag with ID " + tag.getId() + " assigned to task with ID " + task.getId());
+	}
+	
 	private void addTaskToCollection(Task task, List<String> tags) {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
 				.append("description", task.getDescription())
 				.append("tags", tags));
+	}
+	
+	private void addTagToCollection(Tag tag, List<String> tasks) {
+		tagCollection.insertOne(new Document()
+				.append("id", tag.getId())
+				.append("name", tag.getName())
+				.append("tasks", tasks));
 	}
 }

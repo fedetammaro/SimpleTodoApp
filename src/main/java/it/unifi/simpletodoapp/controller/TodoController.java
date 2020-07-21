@@ -82,7 +82,7 @@ public class TodoController {
 		List<String> currentTags = todoService.findTagsByTaskId(task.getId());
 
 		if (currentTags.stream().anyMatch(t -> t.equals(tag.getId()))) {
-			todoView.tagError("Tag with ID " + tag.getId() + 
+			todoView.taskError("Tag with ID " + tag.getId() + 
 					" is already assigned to task with ID " + task.getId());
 		} else {
 			todoService.addTagToTask(task.getId(), tag.getId());
@@ -100,7 +100,7 @@ public class TodoController {
 			todoService.removeTagFromTask(task.getId(), tag.getId());
 			todoView.tagRemovedFromTask(tag);
 		} else {
-			todoView.tagError("No tag with ID " + tag.getId() + 
+			todoView.taskError("No tag with ID " + tag.getId() + 
 					" assigned to task with ID " + task.getId());
 		}
 	}
