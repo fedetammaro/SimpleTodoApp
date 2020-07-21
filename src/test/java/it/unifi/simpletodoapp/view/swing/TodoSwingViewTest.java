@@ -662,11 +662,11 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		tagsPanel.list("assignedTasksList").clickItem(0);
 		tagsPanel.button("btnRemoveTask").click();
 		
-		verify(todoController).removeTagFromTask(task, tag);
+		verify(todoController).removeTaskFromTag(tag, task);
 	}
 	
 	@Test @GUITest
-	public void testTaskRemovedFromTagRemovesFromTheassignedTasksList() {
+	public void testTaskRemovedFromTagRemovesFromTheAssignedTasksList() {
 		getTagsPanel();
 		
 		Task task = new Task("1", "Buy groceries");

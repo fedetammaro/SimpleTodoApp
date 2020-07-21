@@ -2,7 +2,6 @@ package it.unifi.simpletodoapp.view.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -121,6 +120,10 @@ public class TodoSwingView extends JFrame implements TodoView {
 		public void addTag(Tag tag) {
 			addElement(new TagViewModel(tag));
 		}
+		
+		public void removeTag(Tag tag) {
+			removeElement(new TagViewModel(tag));
+		}
 	}
 
 	static final class TagListModel extends DefaultListModel<TagViewModel> {
@@ -134,15 +137,11 @@ public class TodoSwingView extends JFrame implements TodoView {
 			removeElement(new TagViewModel(tag));
 		}
 	}
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(() -> {
-			TodoSwingView frame = new TodoSwingView();
-			frame.setVisible(true);
-		});
+	
+	public void setTodoController(TodoController todoController) {
+		this.todoController = todoController;
+		this.todoController.getAllTasks();
+		this.todoController.getAllTags();
 	}
 
 	/**
@@ -193,6 +192,8 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void showAllTasks(List<Task> allTasks) {
+		taskListModel.removeAllElements();
+		
 		allTasks.stream().forEach(task -> taskListModel.addTask(task));
 	}
 
@@ -215,6 +216,9 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 	@Override
 	public void showAllTags(List<Tag> allTags) {
+		tagComboModel.removeAllElements();
+		tagListModel.removeAllElements();
+		
 		allTags.stream().forEach(tag -> {
 			tagComboModel.addTag(tag);
 			tagListModel.addTag(tag);
@@ -224,6 +228,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 	@Override
 	public void tagAdded(Tag tag) {
 		tagListModel.addTag(tag);
+		tagComboModel.addTag(tag);
 		tagsErrorLabel.setText(" ");
 	}
 
@@ -235,16 +240,21 @@ public class TodoSwingView extends JFrame implements TodoView {
 	@Override
 	public void tagRemoved(Tag tag) {
 		tagListModel.removeTag(tag);
+		tagComboModel.removeTag(tag);
 		tagsErrorLabel.setText(" ");
 	}
 
 	@Override
 	public void showTaskTags(List<Tag> tags) {
+		assignedTagsListModel.removeAllElements();
+		
 		tags.stream().forEach(tag -> assignedTagsListModel.addTag(tag));
 	}
 
 	@Override
 	public void showTagTasks(List<Task> tasks) {
+		assignedTasksListModel.removeAllElements();
+		
 		tasks.stream().forEach(task -> assignedTasksListModel.addTask(task));
 	}
 
@@ -770,7 +780,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		btnRemoveTask.addActionListener(l -> {
 			Tag tag = tagListModel.get(tagsTagList.getSelectedIndex()).tag;
 			Task task = assignedTasksListModel.get(assignedTasksList.getSelectedIndex()).task;
-			todoController.removeTagFromTask(task, tag);
+			todoController.removeTaskFromTag(tag, task);
 		});
 	}
 
