@@ -60,6 +60,11 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		tagMongoRepository = new TagMongoRepository(mongoClient, "todoapp", "tags");
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
 		
+		MongoDatabase database = mongoClient.getDatabase("todoapp");
+
+		database.drop();
+		taskCollection = database.getCollection("tasks");
+		
 		GuiActionRunner.execute(() -> {
 			todoService = new TodoService(transactionManagerMongo);
 			todoSwingView = new TodoSwingView();
@@ -73,11 +78,6 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		
 		contentPanel = frameFixture.panel("contentPane");
 		tasksPanel = contentPanel.panel("tasksPanel");
-
-		MongoDatabase database = mongoClient.getDatabase("todoapp");
-
-		database.drop();
-		taskCollection = database.getCollection("tasks");
 	}
 	
 	@Override
