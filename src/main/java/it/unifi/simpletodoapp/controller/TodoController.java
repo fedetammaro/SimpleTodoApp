@@ -76,8 +76,15 @@ public class TodoController {
 	}
 
 	public void addTagToTask(Task task, Tag tag) {
-		if (!taskExists(task) || !tagExists(tag))
+		if (todoService.findTaskById(task.getId()) == null) {
+			todoView.taskError(noTaskErrorMessage(task));
 			return;
+		}
+		
+		if (todoService.findTagById(tag.getId()) == null) {
+			todoView.taskError(noTagErrorMessage(tag));
+			return;
+		}
 
 		List<String> currentTags = todoService.findTagsByTaskId(task.getId());
 
@@ -91,8 +98,15 @@ public class TodoController {
 	}
 
 	public void removeTagFromTask(Task task, Tag tag) {
-		if (!taskExists(task) || !tagExists(tag))
+		if (todoService.findTaskById(task.getId()) == null) {
+			todoView.taskError(noTaskErrorMessage(task));
 			return;
+		}
+		
+		if (todoService.findTagById(tag.getId()) == null) {
+			todoView.taskError(noTagErrorMessage(tag));
+			return;
+		}
 
 		List<String> currentTags = todoService.findTagsByTaskId(task.getId());
 
@@ -104,39 +118,47 @@ public class TodoController {
 					" assigned to task with ID " + task.getId());
 		}
 	}
+	
+	public void removeTaskFromTag(Tag tag, Task task) {
+		if (todoService.findTaskById(task.getId()) == null) {
+			todoView.tagError(noTaskErrorMessage(task));
+			return;
+		}
+		
+		if (todoService.findTagById(tag.getId()) == null) {
+			todoView.tagError(noTagErrorMessage(tag));
+			return;
+		}
+		
+		List<String> currentTasks = todoService.findTasksByTagId(tag.getId());
+		
+		if (currentTasks.stream().anyMatch(t -> t.equals(task.getId()))) {
+			todoService.removeTagFromTask(task.getId(), tag.getId());
+			todoView.taskRemovedFromTag(task);
+		} else {
+			todoView.tagError("No task with ID " + task.getId() +
+					" assigned to tag with ID " + tag.getId());
+		}
+	}
 
 	public void getTagsByTask(Task task) {
-		if (!taskExists(task))
+		if (todoService.findTaskById(task.getId()) == null) {
+			todoView.taskError(noTaskErrorMessage(task));
 			return;
+		}
 
 		List<String> tags = todoService.findTagsByTaskId(task.getId());
 		todoView.showTaskTags(getTags(tags));
 	}
 
 	public void getTasksByTag(Tag tag) {
-		if (!tagExists(tag))
+		if (todoService.findTagById(tag.getId()) == null) {
+			todoView.tagError(noTagErrorMessage(tag));
 			return;
+		}
 
 		List<String> tasks = todoService.findTasksByTagId(tag.getId());
 		todoView.showTagTasks(getTasks(tasks));
-	}
-
-	private boolean taskExists(Task task) {
-		if (todoService.findTaskById(task.getId()) == null) {
-			todoView.taskError("No task with ID " + task.getId());
-			return false;
-		}
-
-		return true;
-	}
-
-	private boolean tagExists(Tag tag) {
-		if (todoService.findTagById(tag.getId()) == null) {
-			todoView.tagError("No tag with ID " + tag.getId());
-			return false;
-		}
-
-		return true;
 	}
 
 	private List<Tag> getTags(List<String> tagIds) {
@@ -157,5 +179,13 @@ public class TodoController {
 		}
 
 		return tasks;
+	}
+	
+	private String noTaskErrorMessage(Task task) {
+		return "No task with ID " + task.getId();
+	}
+	
+	private String noTagErrorMessage(Tag tag) {
+		return "No tag with ID " + tag.getId();
 	}
 }

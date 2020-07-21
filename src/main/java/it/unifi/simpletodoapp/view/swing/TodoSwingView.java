@@ -780,7 +780,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		btnRemoveTask.addActionListener(l -> {
 			Tag tag = tagListModel.get(tagsTagList.getSelectedIndex()).tag;
 			Task task = assignedTasksListModel.get(assignedTasksList.getSelectedIndex()).task;
-			todoController.removeTagFromTask(task, tag);
+			todoController.removeTaskFromTag(tag, task);
 		});
 	}
 
