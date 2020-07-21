@@ -9,6 +9,7 @@ import org.assertj.swing.annotation.GUITest;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JPanelFixture;
+import org.assertj.swing.fixture.JTabbedPaneFixture;
 import org.assertj.swing.junit.runner.GUITestRunner;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.bson.Document;
@@ -48,6 +49,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	private FrameFixture frameFixture;
 	private JPanelFixture contentPanel;
 	private JPanelFixture tasksPanel;
+	private JPanelFixture tagsPanel;
 	private MongoClient mongoClient;
 	
 	private MongoCollection<Document> taskCollection;
@@ -135,7 +137,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	}
 	
 	@Test @GUITest
-	public void testDeleteButtonDeletesSuccessfully() {
+	public void testDeleteTaskButtonDeletesSuccessfully() {
 		addTaskToCollection(new Task("1", "Buy groceries"), Collections.emptyList());
 		addTaskToCollection(new Task("2", "Start using TDD"), Collections.emptyList());
 		
@@ -149,7 +151,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	}
 	
 	@Test @GUITest
-	public void testDeleteButtonThrowsError() {
+	public void testDeleteTaskButtonThrowsError() {
 		Task task = new Task("1", "Buy groceries");
 		addTaskToCollection(task, Collections.emptyList());
 		
@@ -260,6 +262,91 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 			.isEqualTo("No tag with ID " + tag.getId() + " assigned to task with ID " + task.getId());
 	}
 	
+	@Test @GUITest
+	public void testShowAllTags() {
+		addTagToCollection(new Tag("1", "Work"), Collections.emptyList());
+		addTagToCollection(new Tag("2", "Important"), Collections.emptyList());
+		addTagToCollection(new Tag("3", "Free time"), Collections.emptyList());
+		
+		GuiActionRunner.execute(() -> todoController.getAllTags());
+		
+		assertThat(tasksPanel.comboBox("tagComboBox").contents())
+		.containsExactly(
+				"(1) Work",
+				"(2) Important",
+				"(3) Free time"
+				);
+		getTagsPanel();
+		assertThat(tagsPanel.list("tagsTagList").contents())
+			.containsExactly(
+					"(1) Work",
+					"(2) Important",
+					"(3) Free time"
+					);
+		
+	}
+	
+	@Test @GUITest
+	public void testAddTagButtonAddsSuccessfully() {
+		getTagsPanel();
+		
+		tagsPanel.textBox("tagIdTextField").enterText("1");
+		tagsPanel.textBox("tagNameTextField").enterText("Work");
+		tagsPanel.button("btnAddTag").click();
+		
+		assertThat(tagsPanel.list("tagsTagList").contents())
+			.containsExactly("(1) Work");
+	}
+	
+	@Test @GUITest
+	public void testAddTagButtonThrowsError() {
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		addTagToCollection(tag, Collections.emptyList());
+		
+		tagsPanel.textBox("tagIdTextField").enterText(tag.getId());
+		tagsPanel.textBox("tagNameTextField").enterText(tag.getName());
+		tagsPanel.button("btnAddTag").click();
+		
+		assertThat(tagsPanel.list("tagsTagList").contents()).isEmpty();
+		assertThat(tagsPanel.label("tagsErrorLabel").text())
+			.isEqualTo("Cannot add tag with duplicated ID " + tag.getId());
+	}
+	
+	@Test @GUITest
+	public void testDeleteTagButtonDeletesSuccessfully() {
+		getTagsPanel();
+		
+		addTagToCollection(new Tag("1", "Work"), Collections.emptyList());
+		addTagToCollection(new Tag("2", "Important"), Collections.emptyList());
+		
+		GuiActionRunner.execute(() -> todoController.getAllTags());
+		
+		tagsPanel.list("tagsTagList").selectItem(0);
+		tagsPanel.button("btnDeleteTag").click();
+		
+		assertThat(tagsPanel.list("tagsTagList").contents())
+			.containsExactly("(2) Important");
+	}
+	
+	@Test @GUITest
+	public void testDeleteTagButtonThrowsError() {
+		getTagsPanel();
+		
+		Tag tag = new Tag("1", "Work");
+		addTagToCollection(tag, Collections.emptyList());
+		
+		GuiActionRunner.execute(() -> todoController.getAllTags());
+		tagMongoRepository.delete(tag);
+		
+		tagsPanel.list("tagsTagList").selectItem(0);
+		tagsPanel.button("btnDeleteTag").click();
+		
+		assertThat(tagsPanel.label("tagsErrorLabel").text())
+			.isEqualTo("Tag with ID " + tag.getId() + " has already been removed");
+	}
+	
 	private void addTaskToCollection(Task task, List<String> tags) {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
@@ -272,5 +359,11 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 				.append("id", tag.getId())
 				.append("name", tag.getName())
 				.append("tasks", tasks));
+	}
+	
+	private void getTagsPanel() {
+		JTabbedPaneFixture tabPanel = contentPanel.tabbedPane("tabbedPane");
+		tabPanel.selectTab("Tags");
+		tagsPanel = contentPanel.panel("tagsPanel");
 	}
 }
