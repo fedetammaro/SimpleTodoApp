@@ -2,7 +2,6 @@ package it.unifi.simpletodoapp.view.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -134,15 +133,9 @@ public class TodoSwingView extends JFrame implements TodoView {
 			removeElement(new TagViewModel(tag));
 		}
 	}
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(() -> {
-			TodoSwingView frame = new TodoSwingView();
-			frame.setVisible(true);
-		});
+	
+	public void setTodoController(TodoController todoController) {
+		this.todoController = todoController;
 	}
 
 	/**
