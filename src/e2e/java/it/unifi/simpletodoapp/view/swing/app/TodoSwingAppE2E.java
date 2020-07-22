@@ -2,9 +2,11 @@ package it.unifi.simpletodoapp.view.swing.app;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.swing.launcher.ApplicationLauncher.*;
+import static org.awaitility.Awaitility.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import javax.swing.JFrame;
@@ -26,6 +28,7 @@ import org.testcontainers.containers.GenericContainer;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
@@ -39,6 +42,10 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 
 	private FrameFixture frameFixture;
 	private MongoClient mongoClient;
+
+	private JPanelFixture contentPanel;
+
+	private JTabbedPaneFixture tabPanel;
 
 	@Override
 	protected void onSetUp() {
@@ -75,12 +82,26 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 					)
 			.start();
 		
-		frameFixture = WindowFinder.findFrame(new GenericTypeMatcher<JFrame>(JFrame.class) {
+		GenericTypeMatcher<JFrame> frameMatcher = new GenericTypeMatcher<JFrame>(JFrame.class) {
 			@Override
 			protected boolean isMatching(JFrame frame) {
 				return "Simple Todo Application".equals(frame.getTitle()) && frame.isShowing();
 			}
-		}).using(robot());
+		};
+		
+		/* Need to wait until the TodoSwingView is created, otherwise these references
+		 * will not be valid to use during the tests, leading to a ComponentLookupException
+		 */
+		await().atMost(2, TimeUnit.SECONDS).until(() -> {
+			try {
+				frameFixture = WindowFinder.findFrame(frameMatcher).using(robot());
+				contentPanel = frameFixture.panel("contentPane");
+				tabPanel = contentPanel.tabbedPane("tabbedPane");
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		});
 	}
 	
 	@Override
@@ -159,7 +180,7 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	public void testDeleteTaskError() {
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.list("tasksTaskList").selectItem(Pattern.compile(".*Buy groceries.*"));
-		removeTaskFromDataBase("1");
+		removeTaskFromDatabase("1");
 		tasksPanel.button("btnDeleteTask").click();
 		
 		assertThat(tasksPanel.label("tasksErrorLabel").text())
@@ -199,6 +220,85 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 			.noneMatch(i -> i.contains("Work"));
 	}
 	
+	@Test @GUITest
+	public void testRemoveTagFromTaskError() {
+		JPanelFixture tasksPanel = getTasksPanel();
+		tasksPanel.list("tasksTaskList").selectItem(Pattern.compile(".*Start using TDD.*"));
+		tasksPanel.list("assignedTagsList").selectItem(Pattern.compile(".*Work.*"));
+		removeTagFromTaskDatabase("2", "1");
+		tasksPanel.button("btnRemoveTag").click();
+		
+		assertThat(tasksPanel.label("tasksErrorLabel").text())
+			.contains("1", "2");
+	}
+	
+	@Test @GUITest
+	public void testAddTagSuccess() {
+		JPanelFixture tagsPanel = getTagsPanel();
+		tagsPanel.textBox("tagIdTextField").enterText("3");
+		tagsPanel.textBox("tagNameTextField").enterText("Free time");
+		tagsPanel.button("btnAddTag").click();
+		
+		assertThat(tagsPanel.list("tagsTagList").contents())
+			.anySatisfy(i -> assertThat(i).contains("3", "Free time"));
+	}
+	
+	@Test @GUITest
+	public void testAddTagError() {
+		JPanelFixture tagsPanel = getTagsPanel();
+		tagsPanel.textBox("tagIdTextField").enterText("1");
+		tagsPanel.textBox("tagNameTextField").enterText("Work");
+		tagsPanel.button("btnAddTag").click();
+		
+		assertThat(tagsPanel.label("tagsErrorLabel").text())
+			.contains("1");
+	}
+	
+	@Test @GUITest
+	public void testDeleteTagSuccess() {
+		JPanelFixture tagsPanel = getTagsPanel();
+		tagsPanel.list("tagsTagList").selectItem(Pattern.compile(".*Work.*"));
+		tagsPanel.button("btnDeleteTag").click();
+		
+		assertThat(tagsPanel.list("tagsTagList").contents())
+			.noneMatch(i -> i.contains("Work"));
+	}
+	
+
+	@Test @GUITest
+	public void testDeleteTagError() {
+		JPanelFixture tagsPanel = getTagsPanel();
+		tagsPanel.list("tagsTagList").selectItem(Pattern.compile(".*Work.*"));
+		removeTagFromDatabase("1");
+		tagsPanel.button("btnDeleteTag").click();
+		
+		assertThat(tagsPanel.label("tagsErrorLabel").text())
+			.contains("1");
+	}
+	
+	@Test @GUITest
+	public void testRemoveTaskFromTagSuccess() {
+		JPanelFixture tagsPanel = getTagsPanel();
+		tagsPanel.list("tagsTagList").selectItem(Pattern.compile(".*Work.*"));
+		tagsPanel.list("assignedTasksList").selectItem(Pattern.compile(".*Start using TDD.*"));
+		tagsPanel.button("btnRemoveTask").click();
+		
+		assertThat(tagsPanel.list("assignedTasksList").contents())
+			.noneMatch(i -> i.contains("Start using TDD"));
+	}
+	
+	@Test @GUITest
+	public void testRemoveTaskFromTagError() {
+		JPanelFixture tagsPanel = getTagsPanel();
+		tagsPanel.list("tagsTagList").selectItem(Pattern.compile(".*Work.*"));
+		tagsPanel.list("assignedTasksList").selectItem(Pattern.compile(".*Start using TDD.*"));
+		removeTaskFromTagDatabase("1", "2");
+		tagsPanel.button("btnRemoveTask").click();
+		
+		assertThat(tagsPanel.label("tagsErrorLabel").text())
+			.contains("2", "1");
+	}
+	
 	private void addTaskToDatabase(Task task, List<String> tags) {
 		mongoClient.getDatabase("todoapp")
 			.getCollection("tasks")
@@ -209,10 +309,28 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 					);
 	}
 	
-	private void removeTaskFromDataBase(String taskId) {
+	private void removeTaskFromDatabase(String taskId) {
 		mongoClient.getDatabase("todoapp")
 			.getCollection("tasks")
 			.deleteOne(Filters.eq("id", taskId));
+	}
+	
+	private void removeTagFromDatabase(String tagId) {
+		mongoClient.getDatabase("todoapp")
+			.getCollection("tags")
+			.deleteOne(Filters.eq("id", tagId));
+	}
+	
+	private void removeTagFromTaskDatabase(String taskId, String tagId) {
+		mongoClient.getDatabase("todoapp")
+			.getCollection("tasks")
+			.updateOne(Filters.eq("id", taskId), Updates.pull("tags", tagId));
+	}
+	
+	private void removeTaskFromTagDatabase(String tagId, String taskId) {
+		mongoClient.getDatabase("todoapp")
+			.getCollection("tags")
+			.updateOne(Filters.eq("id", tagId), Updates.pull("tasks", taskId));
 	}
 	
 	private void addTagToDatabase(Tag tag, List<String> tasks) {
@@ -226,14 +344,12 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	}
 	
 	private JPanelFixture getTasksPanel() {
-		JPanelFixture contentPanel = frameFixture.panel("contentPane");
 		return contentPanel.panel("tasksPanel");
 	}
 	
 	private JPanelFixture getTagsPanel() {
-		JPanelFixture contentPanel = frameFixture.panel("contentPane");
-		JTabbedPaneFixture tabPanel = contentPanel.tabbedPane("tabbedPane");
 		tabPanel.selectTab("Tags");
+		
 		return contentPanel.panel("tagsPanel");
 	}
 }

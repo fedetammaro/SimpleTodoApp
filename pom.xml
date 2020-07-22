@@ -24,11 +24,12 @@
 		<logback.version>1.2.3</logback.version>
 		<assertj-swing.version>3.9.2</assertj-swing.version>
 		<testcontainers.version>1.14.3</testcontainers.version>
+		<picocli.version>4.4.0</picocli.version>
+		<awaitility.version>4.0.3</awaitility.version>
 		<!-- All plugins versions are listed below -->
 		<buildhelper.version>3.2.0</buildhelper.version>
 		<failsafe.version>2.22.2</failsafe.version>
 		<jacoco.version>0.8.5</jacoco.version>
-		<picocli.version>4.4.0</picocli.version>
 
 		<!-- Remove the coverage of classes from Sonar -->
 		<sonar.coverage.exclusions>
@@ -91,6 +92,13 @@
 			<groupId>info.picocli</groupId>
 			<artifactId>picocli</artifactId>
 			<version>${picocli.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.awaitility/awaitility -->
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>${awaitility.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
