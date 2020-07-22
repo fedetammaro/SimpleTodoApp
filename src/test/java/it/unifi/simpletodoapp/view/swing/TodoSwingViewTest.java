@@ -27,14 +27,13 @@ import it.unifi.simpletodoapp.model.Task;
 
 @RunWith(GUITestRunner.class)
 public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
-	private FrameFixture frameFixture;
-	
 	@Mock
 	private TodoController todoController;
 	
 	@InjectMocks
 	private TodoSwingView todoSwingView;
 	
+	private FrameFixture frameFixture;
 	private JPanelFixture contentPanel;
 	private JPanelFixture tasksPanel;
 	private JPanelFixture tagsPanel;
@@ -148,7 +147,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	public void testTaskErrorMessageLabel() {
 		String errorMessage = "This is an error message";
 		
-		GuiActionRunner.execute(() -> todoSwingView.taskError(errorMessage));
+		GuiActionRunner.execute(
+				() -> todoSwingView.taskError(errorMessage)
+				);
 		tasksPanel.label("tasksErrorLabel").requireText(errorMessage);
 	}
 	
@@ -169,7 +170,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	public void testSelectingTaskFromListEnablesDeleteTaskButton() {
 		Task task = new Task("1", "Buy groceries");
 		
-		GuiActionRunner.execute(() -> todoSwingView.taskAdded(task));
+		GuiActionRunner.execute(
+				() -> todoSwingView.taskAdded(task)
+				);
 		
 		tasksPanel.list("tasksTaskList").clickItem(0);
 		tasksPanel.button("btnDeleteTask").requireEnabled();
@@ -181,7 +184,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	public void testDeleteTaskButtonControllerInvocationWhenPressed() {
 		Task task = new Task("1", "Buy groceries");
 		
-		GuiActionRunner.execute(() -> todoSwingView.taskAdded(task));
+		GuiActionRunner.execute(
+				() -> todoSwingView.taskAdded(task)
+				);
 		
 		tasksPanel.list("tasksTaskList").clickItem(0);
 		tasksPanel.button("btnDeleteTask").click();
@@ -220,7 +225,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		Task firstTask = new Task("1", "Buy groceries");
 		Task secondTask = new Task("2", "Start using TDD");
 		
-		GuiActionRunner.execute(() -> todoSwingView.showAllTasks(Arrays.asList(firstTask, secondTask)));
+		GuiActionRunner.execute(
+				() -> todoSwingView.showAllTasks(Arrays.asList(firstTask, secondTask))
+				);
 		
 		String[] taskList = tasksPanel.list("tasksTaskList").contents();
 		assertThat(taskList).containsExactly("#1 - Buy groceries", "#2 - Start using TDD");
@@ -231,7 +238,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		Task firstTask = new Task("1", "Buy groceries");
 		Task secondTask = new Task("2", "Start using TDD");
 		
-		GuiActionRunner.execute(() -> todoSwingView.showAllTasks(Arrays.asList(firstTask, secondTask)));
+		GuiActionRunner.execute(
+				() -> todoSwingView.showAllTasks(Arrays.asList(firstTask, secondTask))
+				);
 		
 		tasksPanel.list("tasksTaskList").clickItem(0);
 		verify(todoController).getTagsByTask(firstTask);
@@ -241,7 +250,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	public void testTagComboBoxEnabledWhenTaskIsSelected() {
 		Task task = new Task("1", "Buy groceries");
 		
-		GuiActionRunner.execute(() -> todoSwingView.taskAdded(task));
+		GuiActionRunner.execute(
+				() -> todoSwingView.taskAdded(task)
+				);
 		
 		tasksPanel.list("tasksTaskList").clickItem(0);
 		tasksPanel.comboBox("tagComboBox").requireEnabled();
@@ -254,7 +265,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		Tag firstTag = new Tag("1", "Work");
 		Tag secondTag = new Tag("2", "Important");
 		
-		GuiActionRunner.execute(() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag)));
+		GuiActionRunner.execute(
+				() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag))
+				);
 		
 		String[] tagsInComboBox = tasksPanel.comboBox("tagComboBox").contents();
 		assertThat(tagsInComboBox).containsExactly("(1) Work", "(2) Important");
@@ -264,7 +277,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	public void testAssignTagEnabledWhenTaskIsSelected() {
 		Task task = new Task("1", "Buy groceries");
 		
-		GuiActionRunner.execute(() -> todoSwingView.taskAdded(task));
+		GuiActionRunner.execute(
+				() -> todoSwingView.taskAdded(task)
+				);
 		
 		tasksPanel.list("tasksTaskList").clickItem(0);
 		tasksPanel.button("btnAssignTag").requireEnabled();
@@ -291,7 +306,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	public void testTagAddedAddsToTheAssignedTagList() {
 		Tag tag = new Tag("1", "Work");
 		
-		GuiActionRunner.execute(() -> todoSwingView.tagAddedToTask(tag));
+		GuiActionRunner.execute(
+				() -> todoSwingView.tagAddedToTask(tag)
+				);
 		
 		String[] taskTagsList = tasksPanel.list("assignedTagsList").contents();
 		assertThat(taskTagsList).containsExactly("(1) Work");
@@ -314,7 +331,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		Tag firstTag = new Tag("1", "Work");
 		Tag secondTag = new Tag("2", "Important");
 		
-		GuiActionRunner.execute(() -> todoSwingView.showTaskTags(Arrays.asList(firstTag, secondTag)));
+		GuiActionRunner.execute(
+				() -> todoSwingView.showTaskTags(Arrays.asList(firstTag, secondTag))
+				);
 		
 		String[] tagsList = tasksPanel.list("assignedTagsList").contents();
 		assertThat(tagsList).containsExactly("(1) Work", "(2) Important");
@@ -482,7 +501,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		
 		Tag tag = new Tag("1", "Work");
 		
-		GuiActionRunner.execute(() -> todoSwingView.tagAdded(tag));
+		GuiActionRunner.execute(
+				() -> todoSwingView.tagAdded(tag)
+				);
 		
 		String[] tagList = tagsPanel.list("tagsTagList").contents();
 		assertThat(tagList).containsExactly("(1) Work");
@@ -494,7 +515,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		
 		String errorMessage = "This is an error message";
 		
-		GuiActionRunner.execute(() -> todoSwingView.tagError(errorMessage));
+		GuiActionRunner.execute(
+				() -> todoSwingView.tagError(errorMessage)
+				);
 		tagsPanel.label("tagsErrorLabel").requireText(errorMessage);
 	}
 	
@@ -519,7 +542,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		
 		Tag tag = new Tag("1", "Work");
 		
-		GuiActionRunner.execute(() -> todoSwingView.tagAdded(tag));
+		GuiActionRunner.execute(
+				() -> todoSwingView.tagAdded(tag)
+				);
 		
 		tagsPanel.list("tagsTagList").clickItem(0);
 		tagsPanel.button("btnDeleteTag").requireEnabled();
@@ -533,7 +558,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		
 		Tag tag = new Tag("1", "Work");
 		
-		GuiActionRunner.execute(() -> todoSwingView.tagAdded(tag));
+		GuiActionRunner.execute(
+				() -> todoSwingView.tagAdded(tag)
+				);
 		
 		tagsPanel.list("tagsTagList").clickItem(0);
 		tagsPanel.button("btnDeleteTag").click();
@@ -578,7 +605,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		Tag firstTag = new Tag("1", "Work");
 		Tag secondTag = new Tag("2", "Important");
 		
-		GuiActionRunner.execute(() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag)));
+		GuiActionRunner.execute(
+				() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag))
+				);
 		
 		String[] tagList = tagsPanel.list("tagsTagList").contents();
 		assertThat(tagList).containsExactly("(1) Work", "(2) Important");
@@ -591,7 +620,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		Tag firstTag = new Tag("1", "Work");
 		Tag secondTag = new Tag("2", "Important");
 		
-		GuiActionRunner.execute(() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag)));
+		GuiActionRunner.execute(
+				() -> todoSwingView.showAllTags(Arrays.asList(firstTag, secondTag))
+				);
 		
 		tagsPanel.list("tagsTagList").clickItem(0);
 		verify(todoController).getTasksByTag(firstTag);
@@ -604,7 +635,9 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		Task firstTask = new Task("1", "Buy groceries");
 		Task secondTask = new Task("2", "Start using TDD");
 		
-		GuiActionRunner.execute(() -> todoSwingView.showTagTasks(Arrays.asList(firstTask, secondTask)));
+		GuiActionRunner.execute(
+				() -> todoSwingView.showTagTasks(Arrays.asList(firstTask, secondTask))
+				);
 		
 		String[] tasksList = tagsPanel.list("assignedTasksList").contents();
 		assertThat(tasksList).containsExactly("#1 - Buy groceries", "#2 - Start using TDD");

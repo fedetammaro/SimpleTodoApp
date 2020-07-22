@@ -177,7 +177,8 @@ public class TagMongoRepositoryTest {
 		tagCollection.insertOne(new Document()
 				.append("id", tag.getId())
 				.append("name", tag.getName())
-				.append("tasks", tasks));
+				.append("tasks", tasks)
+				);
 	}
 
 	private List<Tag> getTagsFromDatabase() {

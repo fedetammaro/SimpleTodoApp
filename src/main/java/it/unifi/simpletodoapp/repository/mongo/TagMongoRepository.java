@@ -49,7 +49,8 @@ public class TagMongoRepository implements TagRepository {
 		tagCollection.insertOne(new Document()
 				.append(ID, tag.getId())
 				.append(NAME, tag.getName())
-				.append(TASKS, Collections.emptyList()));		
+				.append(TASKS, Collections.emptyList())
+				);		
 	}
 
 	@Override

@@ -177,7 +177,8 @@ public class TaskMongoRepositoryTest {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
 				.append("description", task.getDescription())
-				.append("tags", tags));
+				.append("tags", tags)
+				);
 	}
 
 	private List<Task> getTasksFromDatabase() {

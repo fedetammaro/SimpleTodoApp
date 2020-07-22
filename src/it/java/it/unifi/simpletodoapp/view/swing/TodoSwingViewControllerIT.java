@@ -34,10 +34,18 @@ import it.unifi.simpletodoapp.service.TodoService;
 
 @RunWith(GUITestRunner.class)
 public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
+	private static final int MONGO_PORT = 27017;
+
+	private static final String DB_NAME = "todoapp";
+
+	private static final String TASKS_COLLECTION = "tasks";
+
+	private static final String TAGS_COLLECTION = "tags";
+
 	@SuppressWarnings("rawtypes")
 	@ClassRule
 	public static final GenericContainer mongoContainer =
-	new GenericContainer("krnbr/mongo").withExposedPorts(27017);
+	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
 	
 	private TodoSwingView todoSwingView;
 	private TodoService todoService;
@@ -59,16 +67,17 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	public void onSetUp() {
 		mongoClient = new MongoClient(new ServerAddress(
 				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(27017)));
-		taskMongoRepository = new TaskMongoRepository(mongoClient, "todoapp", "tasks");
-		tagMongoRepository = new TagMongoRepository(mongoClient, "todoapp", "tags");
+				mongoContainer.getMappedPort(MONGO_PORT))
+				);
+		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
+		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
 		
-		MongoDatabase database = mongoClient.getDatabase("todoapp");
+		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 
 		database.drop();
-		taskCollection = database.getCollection("tasks");
-		tagCollection = database.getCollection("tags");
+		taskCollection = database.getCollection(TASKS_COLLECTION);
+		tagCollection = database.getCollection(TAGS_COLLECTION);
 		
 		GuiActionRunner.execute(() -> {
 			todoService = new TodoService(transactionManagerMongo);
@@ -102,7 +111,9 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		addTaskToCollection(new Task("2", "Start using TDD"), Collections.emptyList());
 		addTaskToCollection(new Task("3", "Read some more"), Collections.emptyList());
 		
-		GuiActionRunner.execute(() -> todoController.getAllTasks());
+		GuiActionRunner.execute(
+				() -> todoController.getAllTasks()
+				);
 		
 		assertThat(tasksPanel.list("tasksTaskList").contents())
 			.containsExactly(
@@ -141,7 +152,9 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		addTaskToCollection(new Task("1", "Buy groceries"), Collections.emptyList());
 		addTaskToCollection(new Task("2", "Start using TDD"), Collections.emptyList());
 		
-		GuiActionRunner.execute(() -> todoController.getAllTasks());
+		GuiActionRunner.execute(
+				() -> todoController.getAllTasks()
+				);
 		
 		tasksPanel.list("tasksTaskList").selectItem(0);
 		tasksPanel.button("btnDeleteTask").click();
@@ -155,7 +168,9 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		Task task = new Task("1", "Buy groceries");
 		addTaskToCollection(task, Collections.emptyList());
 		
-		GuiActionRunner.execute(() -> todoController.getAllTasks());
+		GuiActionRunner.execute(
+				() -> todoController.getAllTasks()
+				);
 		taskMongoRepository.delete(task);
 		
 		tasksPanel.list("tasksTaskList").selectItem(0);
@@ -271,19 +286,20 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		GuiActionRunner.execute(() -> todoController.getAllTags());
 		
 		assertThat(tasksPanel.comboBox("tagComboBox").contents())
-		.containsExactly(
-				"(1) Work",
-				"(2) Important",
-				"(3) Free time"
-				);
-		getTagsPanel();
-		assertThat(tagsPanel.list("tagsTagList").contents())
 			.containsExactly(
 					"(1) Work",
 					"(2) Important",
 					"(3) Free time"
 					);
 		
+		getTagsPanel();
+		
+		assertThat(tagsPanel.list("tagsTagList").contents())
+			.containsExactly(
+					"(1) Work",
+					"(2) Important",
+					"(3) Free time"
+					);
 	}
 	
 	@Test @GUITest
@@ -321,7 +337,9 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		addTagToCollection(new Tag("1", "Work"), Collections.emptyList());
 		addTagToCollection(new Tag("2", "Important"), Collections.emptyList());
 		
-		GuiActionRunner.execute(() -> todoController.getAllTags());
+		GuiActionRunner.execute(
+				() -> todoController.getAllTags()
+				);
 		
 		tagsPanel.list("tagsTagList").selectItem(0);
 		tagsPanel.button("btnDeleteTag").click();
@@ -337,7 +355,9 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		Tag tag = new Tag("1", "Work");
 		addTagToCollection(tag, Collections.emptyList());
 		
-		GuiActionRunner.execute(() -> todoController.getAllTags());
+		GuiActionRunner.execute(
+				() -> todoController.getAllTags()
+				);
 		tagMongoRepository.delete(tag);
 		
 		tagsPanel.list("tagsTagList").selectItem(0);
@@ -418,14 +438,16 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
 				.append("description", task.getDescription())
-				.append("tags", tags));
+				.append(TAGS_COLLECTION, tags)
+				);
 	}
 	
 	private void addTagToCollection(Tag tag, List<String> tasks) {
 		tagCollection.insertOne(new Document()
 				.append("id", tag.getId())
 				.append("name", tag.getName())
-				.append("tasks", tasks));
+				.append(TASKS_COLLECTION, tasks)
+				);
 	}
 	
 	private void getTagsPanel() {

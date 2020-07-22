@@ -28,7 +28,7 @@ public class TaskMongoRepositoryIT {
 	@SuppressWarnings("rawtypes")
 	@ClassRule
 	public static final GenericContainer mongoContainer =
-	new GenericContainer("mongo").withExposedPorts(27017);
+	new GenericContainer("krnbr/mongo").withExposedPorts(27017);
 
 	private MongoClient mongoClient;
 	private TaskMongoRepository taskMongoRepository;
@@ -38,7 +38,8 @@ public class TaskMongoRepositoryIT {
 	public void setup() {
 		mongoClient = new MongoClient(new ServerAddress(
 				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(27017)));
+				mongoContainer.getMappedPort(27017))
+				);
 		taskMongoRepository = new TaskMongoRepository(mongoClient, "todoapp", "tasks");
 
 		MongoDatabase database = mongoClient.getDatabase("todoapp");
@@ -51,7 +52,7 @@ public class TaskMongoRepositoryIT {
 	public void tearDown() {
 		mongoClient.close();
 	}
-	
+
 	@AfterClass
 	public static void stopContainer() {
 		mongoContainer.stop();
@@ -90,7 +91,7 @@ public class TaskMongoRepositoryIT {
 	public void testDelete() {
 		Task task = new Task("1", "Buy groceries");
 		addTaskToDatabase(task, Collections.emptyList());
-		
+
 		taskMongoRepository.delete(task);
 
 		assertThat(getAllTasksFromDatabase()).isEmpty();
@@ -104,33 +105,33 @@ public class TaskMongoRepositoryIT {
 		assertThat(taskMongoRepository.getTagsByTaskId(task.getId()))
 		.containsExactly("1", "2");
 	}
-	
+
 	@Test
 	public void testAddTagToTask() {
 		Task task = new Task("1", "Buy groceries");
 		addTaskToDatabase(task, Arrays.asList("1"));
-		
+
 		taskMongoRepository.addTagToTask(task.getId(), "2");
-		
+
 		assertThat(getTagsAssignedToTask(task)).containsExactly("1", "2");
 	}
-	
+
 	@Test
 	public void testRemoveTagFromTask() {
 		Task task = new Task("1", "Buy groceries");
 		addTaskToDatabase(task, Arrays.asList("1", "2"));
-		
+
 		taskMongoRepository.removeTagFromTask(task.getId(), "2");
-		
+
 		assertThat(getTagsAssignedToTask(task)).containsExactly("1");
 	}
 
 	private void addTaskToDatabase(Task task, List<String> tags) {
-		taskCollection.insertOne(
-				new Document()
+		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
 				.append("description", task.getDescription())
-				.append("tags", tags));
+				.append("tags", tags)
+				);
 	}
 
 	private List<Task> getAllTasksFromDatabase() {
@@ -139,7 +140,7 @@ public class TaskMongoRepositoryIT {
 				.map(d -> new Task(d.getString("id"), d.getString("description")))
 				.collect(Collectors.toList());
 	}
-	
+
 	private List<String> getTagsAssignedToTask(Task task) {
 		return taskCollection
 				.find(Filters.eq("id", task.getId()))

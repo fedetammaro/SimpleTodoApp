@@ -46,11 +46,17 @@ public class TodoServiceTest {
 		MockitoAnnotations.initMocks(this);
 
 		when(transactionManager.doTaskTransaction(any()))
-			.thenAnswer(answer((TaskTransactionCode<?> code) -> code.apply(taskRepository)));
+			.thenAnswer(answer(
+					(TaskTransactionCode<?> code) -> code.apply(taskRepository)
+					));
 		when(transactionManager.doTagTransaction(any()))
-			.thenAnswer(answer((TagTransactionCode<?> code) -> code.apply(tagRepository)));
+			.thenAnswer(answer(
+					(TagTransactionCode<?> code) -> code.apply(tagRepository)
+					));
 		when(transactionManager.doCompositeTransaction(any()))
-			.thenAnswer(answer((CompositeTransactionCode<?> code) -> code.apply(taskRepository, tagRepository)));
+			.thenAnswer(answer(
+					(CompositeTransactionCode<?> code) -> code.apply(taskRepository, tagRepository)
+					));
 	}
 
 	@Test
@@ -131,7 +137,8 @@ public class TodoServiceTest {
 		// Setup phase
 		List<Tag> tags = Arrays.asList(
 				new Tag("1", "Work"),
-				new Tag("2", "Important"));
+				new Tag("2", "Important")
+				);
 		when(tagRepository.findAll())
 			.thenReturn(tags);
 

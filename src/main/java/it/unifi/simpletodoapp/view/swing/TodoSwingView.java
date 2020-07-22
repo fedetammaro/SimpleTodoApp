@@ -120,7 +120,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 		public void addTag(Tag tag) {
 			addElement(new TagViewModel(tag));
 		}
-		
+
 		public void removeTag(Tag tag) {
 			removeElement(new TagViewModel(tag));
 		}
@@ -137,7 +137,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 			removeElement(new TagViewModel(tag));
 		}
 	}
-	
+
 	public void setTodoController(TodoController todoController) {
 		this.todoController = todoController;
 		this.todoController.getAllTasks();
@@ -193,8 +193,10 @@ public class TodoSwingView extends JFrame implements TodoView {
 	@Override
 	public void showAllTasks(List<Task> allTasks) {
 		taskListModel.removeAllElements();
-		
-		allTasks.stream().forEach(task -> taskListModel.addTask(task));
+
+		allTasks.stream().forEach(
+				task -> taskListModel.addTask(task)
+				);
 	}
 
 	@Override
@@ -218,11 +220,12 @@ public class TodoSwingView extends JFrame implements TodoView {
 	public void showAllTags(List<Tag> allTags) {
 		tagComboModel.removeAllElements();
 		tagListModel.removeAllElements();
-		
-		allTags.stream().forEach(tag -> {
-			tagComboModel.addTag(tag);
-			tagListModel.addTag(tag);
-		});
+
+		allTags.stream().forEach(
+				tag -> {
+					tagComboModel.addTag(tag);
+					tagListModel.addTag(tag);
+				});
 	}
 
 	@Override
@@ -247,15 +250,19 @@ public class TodoSwingView extends JFrame implements TodoView {
 	@Override
 	public void showTaskTags(List<Tag> tags) {
 		assignedTagsListModel.removeAllElements();
-		
-		tags.stream().forEach(tag -> assignedTagsListModel.addTag(tag));
+
+		tags.stream().forEach(
+				tag -> assignedTagsListModel.addTag(tag)
+				);
 	}
 
 	@Override
 	public void showTagTasks(List<Task> tasks) {
 		assignedTasksListModel.removeAllElements();
-		
-		tasks.stream().forEach(task -> assignedTasksListModel.addTask(task));
+
+		tasks.stream().forEach(
+				task -> assignedTasksListModel.addTask(task)
+				);
 	}
 
 	@Override
@@ -531,7 +538,9 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcAssignedTagsList.gridy = 2;
 		panel.add(assignedTagsList, gbcAssignedTagsList);
 
-		assignedTagsList.addListSelectionListener(l -> btnRemoveTag.setEnabled(assignedTagsList.getSelectedIndex() != -1));
+		assignedTagsList.addListSelectionListener(
+				l -> btnRemoveTag.setEnabled(assignedTagsList.getSelectedIndex() != -1)
+				);
 	}
 
 	private void createBtnRemoveTag(JPanel panel) {
@@ -763,7 +772,9 @@ public class TodoSwingView extends JFrame implements TodoView {
 		gbcAssignedTaskList.gridy = 1;
 		panel.add(assignedTasksList, gbcAssignedTaskList);
 
-		assignedTasksList.addListSelectionListener(l -> btnRemoveTask.setEnabled(assignedTasksList.getSelectedIndex() != -1));
+		assignedTasksList.addListSelectionListener(
+				l -> btnRemoveTask.setEnabled(assignedTasksList.getSelectedIndex() != -1)
+				);
 	}
 
 	private void createRemoveTaskButton(JPanel panel) {

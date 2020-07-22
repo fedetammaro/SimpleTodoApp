@@ -49,7 +49,8 @@ public class TaskMongoRepository implements TaskRepository {
 		taskCollection.insertOne(new Document()
 				.append(ID, task.getId())
 				.append(DESCRIPTION, task.getDescription())
-				.append(TAGS, Collections.emptyList()));		
+				.append(TAGS, Collections.emptyList())
+				);		
 	}
 
 	@Override

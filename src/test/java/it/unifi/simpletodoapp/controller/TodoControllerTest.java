@@ -245,8 +245,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).findTagById(tag.getId());
 		inOrder.verify(todoService, never()).deleteTag(any());
-		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + 
-				" has already been removed");
+		inOrder.verify(todoView).tagError("Tag with ID " + tag.getId() + " has already been removed");
 		inOrder.verifyNoMoreInteractions();
 	}
 	

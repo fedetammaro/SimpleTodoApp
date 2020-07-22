@@ -24,10 +24,15 @@ import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
 public class TransactionManagerMongoIT {
+	private static final int MONGO_PORT = 27017;
+	private static final String DB_NAME = "todoapp";
+	private static final String TASKS_COLLECTION = "tasks";
+	private static final String TAGS_COLLECTION = "tags";
+
 	@SuppressWarnings("rawtypes")
 	@ClassRule
 	public static final GenericContainer mongoContainer =
-	new GenericContainer("krnbr/mongo").withExposedPorts(27017);
+	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
 	
 	private TransactionManagerMongo transactionManagerMongo;
 	
@@ -41,17 +46,18 @@ public class TransactionManagerMongoIT {
 	public void setup() {
 		mongoClient = new MongoClient(new ServerAddress(
 				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(27017)));
-		taskMongoRepository = new TaskMongoRepository(mongoClient, "todoapp", "tasks");
-		tagMongoRepository = new TagMongoRepository(mongoClient, "todoapp", "tags");
+				mongoContainer.getMappedPort(MONGO_PORT))
+				);
+		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
+		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 		
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
 
-		MongoDatabase database = mongoClient.getDatabase("todoapp");
+		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 
 		database.drop();
-		taskCollection = database.getCollection("tasks");
-		tagCollection = database.getCollection("tags");
+		taskCollection = database.getCollection(TASKS_COLLECTION);
+		tagCollection = database.getCollection(TAGS_COLLECTION);
 	}
 
 	@After
@@ -125,13 +131,13 @@ public class TransactionManagerMongoIT {
 		return taskCollection
 				.find(Filters.eq("id", task.getId()))
 				.first()
-				.getList("tags", String.class);
+				.getList(TAGS_COLLECTION, String.class);
 	}
 	
 	private List<String> getTasksAssignedToTag(Tag tag) {
 		return tagCollection
 				.find(Filters.eq("id", tag.getId()))
 				.first()
-				.getList("tasks", String.class);
+				.getList(TASKS_COLLECTION, String.class);
 	}
 }
