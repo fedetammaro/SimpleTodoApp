@@ -29,7 +29,7 @@ import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
 @RunWith(GUITestRunner.class)
-public class TodoSwingApp extends AssertJSwingJUnitTestCase {
+public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	@SuppressWarnings("rawtypes")
 	@ClassRule
 	public static final GenericContainer mongoContainer =

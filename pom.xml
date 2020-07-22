@@ -117,6 +117,7 @@
 				<configuration>
 					<excludedClasses>
 						<param>*Test</param>
+						<param>it.unifi.simpletodoapp.TodoApplication</param>
 						<param>it.unifi.simpletodoapp.model.*</param>
 						<param>it.unifi.simpletodoapp.view.*</param>
 						<!-- Removed since there are no unit tests for this class (only IT 
