@@ -28,7 +28,8 @@
 		<buildhelper.version>3.2.0</buildhelper.version>
 		<failsafe.version>2.22.2</failsafe.version>
 		<jacoco.version>0.8.5</jacoco.version>
-		
+		<picocli.version>4.4.0</picocli.version>
+
 		<!-- Remove the coverage of classes from Sonar -->
 		<sonar.coverage.exclusions>
 			**/model/*.*,
@@ -84,6 +85,12 @@
 			<artifactId>testcontainers</artifactId>
 			<version>${testcontainers.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/info.picocli/picocli -->
+		<dependency>
+			<groupId>info.picocli</groupId>
+			<artifactId>picocli</artifactId>
+			<version>${picocli.version}</version>
 		</dependency>
 	</dependencies>
 
