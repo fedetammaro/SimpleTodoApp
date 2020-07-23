@@ -35,17 +35,23 @@ public class TagMongoRepositoryTest {
 
 	@BeforeClass
 	public static void startServer() {
+		/* We initialize the in-memory mongo database server
+		 * and we obtain its address  */
 		mongoServer = new MongoServer(new MemoryBackend());
 		serverAddress = mongoServer.bind();
 	}
 
 	@AfterClass
 	public static void stopServer() {
+		// Stop the server after all tests have been executed
 		mongoServer.shutdown();
 	}
 
 	@Before
 	public void setUp() {
+		/* We initialize the mongo client to use the in-memory database
+		 * and the repository to use the mongo client on the specified
+		 * database and collection */
 		mongoClient = new MongoClient(new ServerAddress(serverAddress));
 		mongoClient.getDatabase(DB_NAME).drop();
 
@@ -56,6 +62,8 @@ public class TagMongoRepositoryTest {
 
 	@After
 	public void tearDown() {
+		/* Close the client connection after each test so that it can
+		 * be created anew in the next test */
 		mongoClient.close();
 	}
 	
@@ -174,6 +182,7 @@ public class TagMongoRepositoryTest {
 	}
 	
 	private void addTagToDatabase(Tag tag, List<String> tasks) {
+		// Private method to directly insert a tag in the collection
 		tagCollection.insertOne(new Document()
 				.append("id", tag.getId())
 				.append("name", tag.getName())
@@ -182,6 +191,7 @@ public class TagMongoRepositoryTest {
 	}
 
 	private List<Tag> getTagsFromDatabase() {
+		// Private method to directly retrieve all tags from the collection
 		return StreamSupport
 				.stream(tagCollection.find().spliterator(), false)
 				.map(d -> new Tag(d.getString("id"), d.getString("name")))

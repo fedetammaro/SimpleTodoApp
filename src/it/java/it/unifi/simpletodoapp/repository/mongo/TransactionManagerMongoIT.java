@@ -44,6 +44,9 @@ public class TransactionManagerMongoIT {
 
 	@Before
 	public void setup() {
+		/* Creates the mongo client by connecting it to the mongodb instance, both
+		 * repositories and collections and the transaction manager; also empties
+		 * the database before each test */
 		mongoClient = new MongoClient(new ServerAddress(
 				mongoContainer.getContainerIpAddress(),
 				mongoContainer.getMappedPort(MONGO_PORT))
@@ -62,44 +65,55 @@ public class TransactionManagerMongoIT {
 
 	@After
 	public void tearDown() {
+		/* Close the client connection after each test so that it can
+		 * be created anew in the next test */
 		mongoClient.close();
 	}
 	
 
 	@AfterClass
 	public static void stopContainer() {
+		// Stops the container after all methods have been executed
 		mongoContainer.stop();
 	}
 	
 	@Test
 	public void testTaskTransaction() {
+		// Setup phase
 		Task task = new Task("1", "Start using TDD");
 		
+		// Exercise phase
 		transactionManagerMongo.doTaskTransaction(taskRepository -> {
 			taskRepository.save(task);
 			return null;
 		});
 		
+		// Verify phase
 		assertThat(getAllTasksFromDatabase()).containsExactly(task);
 	}
 	
 	@Test
 	public void testTagTransaction() {
+		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		
+		// Exercise phase
 		transactionManagerMongo.doTagTransaction(tagRepository -> {
 			tagRepository.save(tag);
 			return null;
 		});
-		
+
+		// Verify phase
 		assertThat(getAllTagsFromDatabase()).containsExactly(tag);
 	}
 	
 	@Test
 	public void testCompositeTransaction() {
+		// Setup phase
 		Task task = new Task("1", "Start using TDD");
 		Tag tag = new Tag("1", "Work");
 		
+		// Exercise phase
 		transactionManagerMongo.doCompositeTransaction((taskRepository, tagRepository) -> {
 			taskRepository.save(task);
 			tagRepository.save(tag);
@@ -108,12 +122,14 @@ public class TransactionManagerMongoIT {
 			tagRepository.addTaskToTag(tag.getId(), task.getId());
 			return null;
 		});
-		
+
+		// Verify phase
 		assertThat(getTagsAssignedToTask(task)).containsExactly("1");
 		assertThat(getTasksAssignedToTag(tag)).containsExactly("1");
 	}
 	
 	private List<Task> getAllTasksFromDatabase() {
+		// Private method to directly retrieve all tasks from the collection
 		return StreamSupport
 				.stream(taskCollection.find().spliterator(), false)
 				.map(d -> new Task(d.getString("id"), d.getString("description")))
@@ -121,6 +137,7 @@ public class TransactionManagerMongoIT {
 	}
 	
 	private List<Tag> getAllTagsFromDatabase() {
+		// Private method to directly retrieve all tags from the collection
 		return StreamSupport
 				.stream(tagCollection.find().spliterator(), false)
 				.map(d -> new Tag(d.getString("id"), d.getString("name")))
@@ -128,16 +145,20 @@ public class TransactionManagerMongoIT {
 	}
 	
 	private List<String> getTagsAssignedToTask(Task task) {
+		/* Private method to directly retrieve all tags assigned to a task 
+		 * from the collection */
 		return taskCollection
 				.find(Filters.eq("id", task.getId()))
 				.first()
-				.getList(TAGS_COLLECTION, String.class);
+				.getList("tags", String.class);
 	}
 	
 	private List<String> getTasksAssignedToTag(Tag tag) {
+		/* Private method to directly retrieve all tasks assigned to a tag 
+		 * from the collection */
 		return tagCollection
 				.find(Filters.eq("id", tag.getId()))
 				.first()
-				.getList(TASKS_COLLECTION, String.class);
+				.getList("tasks", String.class);
 	}
 }

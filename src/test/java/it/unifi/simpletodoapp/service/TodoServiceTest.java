@@ -44,7 +44,9 @@ public class TodoServiceTest {
 		/* Initializes all annotated fields (transactionManager, taskRepository)
 		and injects the TransactionManager inside the TodoService */
 		MockitoAnnotations.initMocks(this);
-
+		
+		/* Stub all transaction manager methods once to avoid unnecessary code
+		 * duplication, since each method would have the same stub in every test*/
 		when(transactionManager.doTaskTransaction(any()))
 			.thenAnswer(answer(
 					(TaskTransactionCode<?> code) -> code.apply(taskRepository)

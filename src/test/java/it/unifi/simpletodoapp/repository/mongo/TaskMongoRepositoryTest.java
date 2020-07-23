@@ -35,17 +35,23 @@ public class TaskMongoRepositoryTest {
 
 	@BeforeClass
 	public static void startServer() {
+		/* We initialize the in-memory mongo database server
+		 * and we obtain its address  */
 		mongoServer = new MongoServer(new MemoryBackend());
 		serverAddress = mongoServer.bind();
 	}
 
 	@AfterClass
 	public static void stopServer() {
+		// Stop the server after all tests have been executed
 		mongoServer.shutdown();
 	}
 
 	@Before
 	public void setUp() {
+		/* We initialize the mongo client to use the in-memory database
+		 * and the repository to use the mongo client on the specified
+		 * database and collection */
 		mongoClient = new MongoClient(new ServerAddress(serverAddress));
 		mongoClient.getDatabase(DB_NAME).drop();
 
@@ -56,6 +62,8 @@ public class TaskMongoRepositoryTest {
 
 	@After
 	public void tearDown() {
+		/* Close the client connection after each test so that it can
+		 * be created anew in the next test */
 		mongoClient.close();
 	}
 
@@ -174,6 +182,7 @@ public class TaskMongoRepositoryTest {
 	}
 
 	private void addTaskToDatabase(Task task, List<String> tags) {
+		// Private method to directly insert a task in the collection
 		taskCollection.insertOne(new Document()
 				.append("id", task.getId())
 				.append("description", task.getDescription())
@@ -182,6 +191,7 @@ public class TaskMongoRepositoryTest {
 	}
 
 	private List<Task> getTasksFromDatabase() {
+		// Private method to directly retrieve all tasks from the collection
 		return StreamSupport
 				.stream(taskCollection.find().spliterator(), false)
 				.map(d -> new Task(d.getString("id"), d.getString("description")))

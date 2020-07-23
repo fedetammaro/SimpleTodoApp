@@ -40,6 +40,8 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 
 	@Override
 	protected void onSetUp() {
+		/* Setup phase to create the application window, show it and
+		 * get the FrameFixture to conduct tests on */
 		GuiActionRunner.execute(() -> {
 			todoSwingView = new TodoSwingView();
 			return todoSwingView;
@@ -57,7 +59,6 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 	@Test @GUITest
 	public void testTabsArePresent() {
 		JTabbedPaneFixture tabPanel = contentPanel.tabbedPane("tabbedPane");
-		
 		tabPanel.requireTabTitles("Tasks", "Tags");
 	}
 	

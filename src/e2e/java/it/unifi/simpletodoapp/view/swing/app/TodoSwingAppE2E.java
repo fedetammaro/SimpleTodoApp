@@ -62,6 +62,11 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 
 	@Override
 	protected void onSetUp() {
+		/* Creates the mongo client by connecting it to the mongodb instance, empties
+		 * the database before each test, adds some example tasks and tags to their
+		 * relative collections, starts the application and its Swing view and waits
+		 * to find the JFrame of the Swing view, so that tests won't fail because
+		 * they start before the application window has been created and shown */
 		mongoClient = new MongoClient(new ServerAddress(
 				mongoContainer.getContainerIpAddress(),
 				mongoContainer.getMappedPort(MONGO_PORT)));
@@ -118,12 +123,15 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	}
 	
 	@Override
-	protected void onTearDown() {
+	public void onTearDown() {
+		/* Close the client connection after each test so that it can
+		 * be created anew in the next test */
 		mongoClient.close();
 	}
 	
 	@Test @GUITest
 	public void testAlreadySavedDataIsPresent() {
+		// Verify phase (no setup or exercise phases required)
 		JPanelFixture tasksPanel = getTasksPanel();
 		assertThat(tasksPanel.list("tasksTaskList").contents())
 			.anySatisfy(i -> assertThat(i).contains(TASK_1_ID, TASK_1_DESCRIPTION))
@@ -158,32 +166,44 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	
 	@Test @GUITest
 	public void testAddTaskSuccess() {
+		// Setup phase
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.textBox("taskIdTextField").enterText("3");
 		tasksPanel.textBox("taskDescriptionTextField").enterText("Test this application");
+		
+		// Exercise phase
 		tasksPanel.button("btnAddTask").click();
 		
+		// Verify phase
 		assertThat(tasksPanel.list("tasksTaskList").contents())
 			.anySatisfy(i -> assertThat(i).contains("3", "Test this application"));
 	}
 	
 	@Test @GUITest
 	public void testAddTaskError() {
+		// Setup phase
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.textBox("taskIdTextField").enterText(TASK_1_ID);
 		tasksPanel.textBox("taskDescriptionTextField").enterText(TASK_1_DESCRIPTION);
+		
+		// Exercise phase
 		tasksPanel.button("btnAddTask").click();
 		
+		// Verify phase
 		assertThat(tasksPanel.label("tasksErrorLabel").text())
 			.contains(TASK_1_ID);
 	}
 	
 	@Test @GUITest
 	public void testDeleteTaskSuccess() {
+		// Setup phase
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.list("tasksTaskList").selectItem(Pattern.compile(".*" + TASK_1_DESCRIPTION + ".*"));
+		
+		// Exercise phase
 		tasksPanel.button("btnDeleteTask").click();
 		
+		// Verify phase
 		assertThat(tasksPanel.list("tasksTaskList").contents())
 			.noneMatch(i -> i.contains(TASK_1_DESCRIPTION));
 	}
@@ -191,88 +211,120 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 
 	@Test @GUITest
 	public void testDeleteTaskError() {
+		// Setup phase
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.list("tasksTaskList").selectItem(Pattern.compile(".*" + TASK_1_DESCRIPTION + ".*"));
 		removeTaskFromDatabase(TASK_1_ID);
+		
+		// Exercise phase
 		tasksPanel.button("btnDeleteTask").click();
 		
+		// Verify phase
 		assertThat(tasksPanel.label("tasksErrorLabel").text())
 			.contains(TASK_1_ID);
 	}
 	
 	@Test @GUITest
 	public void testAssignTagSuccess() {
+		// Setup phase
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.list("tasksTaskList").selectItem(Pattern.compile(".*Start using TDD.*"));
 		tasksPanel.comboBox("tagComboBox").selectItem(Pattern.compile(".*Important.*"));
+		
+		// Exercise phase
 		tasksPanel.button("btnAssignTag").click();
 		
+		// Verify phase
 		assertThat(tasksPanel.list("assignedTagsList").contents())
 			.anySatisfy(i -> assertThat(i).contains(TAG_2_NAME));
 	}
 	
 	@Test @GUITest
 	public void testAssignTagError() {
+		// Setup phase
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.list("tasksTaskList").selectItem(Pattern.compile(".*Start using TDD.*"));
 		tasksPanel.comboBox("tagComboBox").selectItem(Pattern.compile(".*Work.*"));
+		
+		// Exercise phase
 		tasksPanel.button("btnAssignTag").click();
 		
+		// Verify phase
 		assertThat(tasksPanel.label("tasksErrorLabel").text())
 			.contains(TASK_2_ID, TAG_1_ID);
 	}
 	
 	@Test @GUITest
 	public void testRemoveTagFromTaskSuccess() {
+		// Setup phase
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.list("tasksTaskList").selectItem(Pattern.compile(".*Start using TDD.*"));
 		tasksPanel.list("assignedTagsList").selectItem(Pattern.compile(".*Work.*"));
+		
+		// Exercise phase
 		tasksPanel.button("btnRemoveTag").click();
 		
+		// Verify phase
 		assertThat(tasksPanel.list("assignedTagsList").contents())
 			.noneMatch(i -> i.contains(TAG_1_NAME));
 	}
 	
 	@Test @GUITest
 	public void testRemoveTagFromTaskError() {
+		// Setup phase
 		JPanelFixture tasksPanel = getTasksPanel();
 		tasksPanel.list("tasksTaskList").selectItem(Pattern.compile(".*Start using TDD.*"));
 		tasksPanel.list("assignedTagsList").selectItem(Pattern.compile(".*Work.*"));
 		removeTagFromTaskDatabase(TAG_2_ID, TAG_1_ID);
+		
+		// Exercise phase
 		tasksPanel.button("btnRemoveTag").click();
 		
+		// Verify phase
 		assertThat(tasksPanel.label("tasksErrorLabel").text())
 			.contains(TASK_2_ID, TAG_1_ID);
 	}
 	
 	@Test @GUITest
 	public void testAddTagSuccess() {
+		// Setup phase
 		JPanelFixture tagsPanel = getTagsPanel();
 		tagsPanel.textBox("tagIdTextField").enterText("3");
 		tagsPanel.textBox("tagNameTextField").enterText("Free time");
+		
+		// Exercise phase
 		tagsPanel.button("btnAddTag").click();
 		
+		// Verify phase
 		assertThat(tagsPanel.list("tagsTagList").contents())
 			.anySatisfy(i -> assertThat(i).contains("3", "Free time"));
 	}
 	
 	@Test @GUITest
 	public void testAddTagError() {
+		// Setup phase
 		JPanelFixture tagsPanel = getTagsPanel();
 		tagsPanel.textBox("tagIdTextField").enterText(TAG_1_ID);
 		tagsPanel.textBox("tagNameTextField").enterText(TAG_1_NAME);
+		
+		// Exercise phase
 		tagsPanel.button("btnAddTag").click();
 		
+		// Verify phase
 		assertThat(tagsPanel.label("tagsErrorLabel").text())
 			.contains(TAG_1_ID);
 	}
 	
 	@Test @GUITest
 	public void testDeleteTagSuccess() {
+		// Setup phase
 		JPanelFixture tagsPanel = getTagsPanel();
 		tagsPanel.list("tagsTagList").selectItem(Pattern.compile(".*Work.*"));
+		
+		// Exercise phase
 		tagsPanel.button("btnDeleteTag").click();
 		
+		// Verify phase
 		assertThat(tagsPanel.list("tagsTagList").contents())
 			.noneMatch(i -> i.contains(TAG_1_NAME));
 	}
@@ -280,83 +332,102 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 
 	@Test @GUITest
 	public void testDeleteTagError() {
+		// Setup phase
 		JPanelFixture tagsPanel = getTagsPanel();
 		tagsPanel.list("tagsTagList").selectItem(Pattern.compile(".*Work.*"));
 		removeTagFromDatabase(TAG_1_ID);
+		
+		// Exercise phase
 		tagsPanel.button("btnDeleteTag").click();
 		
+		// Verify phase
 		assertThat(tagsPanel.label("tagsErrorLabel").text())
 			.contains(TAG_1_ID);
 	}
 	
 	@Test @GUITest
 	public void testRemoveTaskFromTagSuccess() {
+		// Setup phase
 		JPanelFixture tagsPanel = getTagsPanel();
 		tagsPanel.list("tagsTagList").selectItem(Pattern.compile(".*Work.*"));
 		tagsPanel.list("assignedTasksList").selectItem(Pattern.compile(".*Start using TDD.*"));
+		
+		// Exercise phase
 		tagsPanel.button("btnRemoveTask").click();
 		
+		// Verify phase
 		assertThat(tagsPanel.list("assignedTasksList").contents())
 			.noneMatch(i -> i.contains(TASK_2_DESCRIPTION));
 	}
 	
 	@Test @GUITest
 	public void testRemoveTaskFromTagError() {
+		// Setup phase
 		JPanelFixture tagsPanel = getTagsPanel();
 		tagsPanel.list("tagsTagList").selectItem(Pattern.compile(".*Work.*"));
 		tagsPanel.list("assignedTasksList").selectItem(Pattern.compile(".*Start using TDD.*"));
 		removeTaskFromTagDatabase(TAG_1_ID, TASK_2_ID);
+		
+		// Exercise phase
 		tagsPanel.button("btnRemoveTask").click();
 		
+		// Verify phase
 		assertThat(tagsPanel.label("tagsErrorLabel").text())
 			.contains(TASK_2_ID, TAG_1_ID);
 	}
 	
 	private void addTaskToDatabase(Task task, List<String> tags) {
+		// Private method to directly insert a task in the collection
 		mongoClient.getDatabase(DB_NAME)
 			.getCollection(TASKS_COLLECTION)
 			.insertOne(new Document()
 					.append("id", task.getId())
 					.append("description", task.getDescription())
-					.append(TAGS_COLLECTION, tags)
+					.append("tags", tags)
+					);
+	}
+	
+	private void addTagToDatabase(Tag tag, List<String> tasks) {
+		// Private method to directly insert a tag in the collection
+		mongoClient.getDatabase(DB_NAME)
+			.getCollection(TAGS_COLLECTION)
+			.insertOne(new Document()
+					.append("id", tag.getId())
+					.append("name", tag.getName())
+					.append("tasks", tasks)
 					);
 	}
 	
 	private void removeTaskFromDatabase(String taskId) {
+		// Private method to directly remove a task from the collection
 		mongoClient.getDatabase(DB_NAME)
 			.getCollection(TASKS_COLLECTION)
 			.deleteOne(Filters.eq("id", taskId));
 	}
 	
 	private void removeTagFromDatabase(String tagId) {
+		// Private method to directly remove a tag from the collection
 		mongoClient.getDatabase(DB_NAME)
 			.getCollection(TAGS_COLLECTION)
 			.deleteOne(Filters.eq("id", tagId));
 	}
 	
 	private void removeTagFromTaskDatabase(String taskId, String tagId) {
+		// Private method to directly remove a tag from a task in the collection
 		mongoClient.getDatabase(DB_NAME)
 			.getCollection(TASKS_COLLECTION)
 			.updateOne(Filters.eq("id", taskId), Updates.pull(TAGS_COLLECTION, tagId));
 	}
 	
 	private void removeTaskFromTagDatabase(String tagId, String taskId) {
+		// Private method to directly remove a task from a tag in the collection
 		mongoClient.getDatabase(DB_NAME)
 			.getCollection(TAGS_COLLECTION)
 			.updateOne(Filters.eq("id", tagId), Updates.pull(TASKS_COLLECTION, taskId));
 	}
 	
-	private void addTagToDatabase(Tag tag, List<String> tasks) {
-		mongoClient.getDatabase(DB_NAME)
-			.getCollection(TAGS_COLLECTION)
-			.insertOne(new Document()
-					.append("id", tag.getId())
-					.append("name", tag.getName())
-					.append(TASKS_COLLECTION, tasks)
-					);
-	}
-	
 	private JPanelFixture getTasksPanel() {
+		// Private method that returns a reference to the tasks panel
 		return contentPanel.panel("tasksPanel");
 	}
 	
