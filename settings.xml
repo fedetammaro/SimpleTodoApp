@@ -1,20 +1,57 @@
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
-    <pluginGroups>
-        <pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
-    </pluginGroups>
-    <profiles>
-        <profile>
-            <id>sonar</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-            	<sonar.projectKey>Sfullez_SimpleTodoApp</sonar.projectKey>
-            	<sonar.organization>sfullez</sonar.organization>
-                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-                <sonar.login>${env.SONAR_TOKEN}</sonar.login>
-                <sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
-            </properties>
-        </profile>
-     </profiles>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+	<pluginGroups>
+		<pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+	</pluginGroups>
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<sonar.projectKey>Sfullez_SimpleTodoApp</sonar.projectKey>
+				<sonar.organization>sfullez</sonar.organization>
+				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+				<sonar.login>${env.SONAR_TOKEN}</sonar.login>
+				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
+
+				<!-- Remove the coverage of classes from Sonar -->
+				<sonar.coverage.exclusions>
+					**/model/*.*,
+					**/TransactionManagerMongo.*
+				</sonar.coverage.exclusions>
+
+				<sonar.issue.ignore.multicriteria>
+					e1,e2,e3
+				</sonar.issue.ignore.multicriteria>
+				<!-- Ignore "Inheritance tree of classes should not be too deep": the 
+					Swing view must extend JFrame (with 4 parents) and implement the view interface -->
+				<sonar.issue.ignore.multicriteria.e1.ruleKey>
+					java:S110
+				</sonar.issue.ignore.multicriteria.e1.ruleKey>
+				<sonar.issue.ignore.multicriteria.e1.resourceKey>
+					**/TodoSwingView.*
+				</sonar.issue.ignore.multicriteria.e1.resourceKey>
+				<!-- Ignore "Tests should include assertions": assertions are made using 
+					AssertJ Swing -->
+				<sonar.issue.ignore.multicriteria.e2.ruleKey>
+					java:S2699
+				</sonar.issue.ignore.multicriteria.e2.ruleKey>
+				<sonar.issue.ignore.multicriteria.e2.resourceKey>
+					**/TodoSwingViewTest.*
+				</sonar.issue.ignore.multicriteria.e2.resourceKey>
+				<!-- Ignore "equals(Object obj) and hashCode() should be overridden in 
+					pairs": the view model classes do not need such method, we're only interested 
+					in a trivial equality operator -->
+				<sonar.issue.ignore.multicriteria.e3.ruleKey>
+					java:S1206
+				</sonar.issue.ignore.multicriteria.e3.ruleKey>
+				<sonar.issue.ignore.multicriteria.e3.resourceKey>
+					**/TodoSwingView.*
+				</sonar.issue.ignore.multicriteria.e3.resourceKey>
+			</properties>
+		</profile>
+	</profiles>
 </settings>
