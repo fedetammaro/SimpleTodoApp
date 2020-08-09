@@ -68,7 +68,7 @@ public class TagMongoRepository {
 	}
 
 	public void removeTaskFromTag(String tagId, String taskId, ClientSession clientSession) {
-		tagCollection.updateOne(Filters.eq(ID, tagId), 
+		tagCollection.updateOne(clientSession, Filters.eq(ID, tagId), 
 				Updates.pull(TASKS, taskId));
 	}
 

@@ -13,7 +13,7 @@ import it.unifi.simpletodoapp.repository.TaskTransactionCode;
 import it.unifi.simpletodoapp.repository.TransactionManager;
 
 public class TransactionManagerMongo implements TransactionManager {
-	private final static Logger LOGGER = Logger.getLogger(TransactionManagerMongo.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(TransactionManagerMongo.class.getName());
 	private MongoClient mongoClient;
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
