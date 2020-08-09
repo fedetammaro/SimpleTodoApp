@@ -77,6 +77,8 @@ public class TodoControllerServiceIT {
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 
 		database.drop();
+		database.createCollection(TASKS_COLLECTION);
+		database.createCollection(TAGS_COLLECTION);
 		taskCollection = database.getCollection(TASKS_COLLECTION);
 		tagCollection = database.getCollection(TAGS_COLLECTION);
 	}

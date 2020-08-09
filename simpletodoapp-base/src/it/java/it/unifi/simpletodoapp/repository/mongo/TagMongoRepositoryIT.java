@@ -18,6 +18,7 @@ import org.testcontainers.containers.GenericContainer;
 
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -28,13 +29,14 @@ public class TagMongoRepositoryIT {
 	private static final int MONGO_PORT = 27017;
 	private static final String DB_NAME = "todoapp";
 	private static final String TAGS_COLLECTION = "tags";
-	
+
 	@SuppressWarnings("rawtypes")
 	@ClassRule
 	public static final GenericContainer mongoContainer =
 	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
 
 	private MongoClient mongoClient;
+	private ClientSession clientSession;
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> tagCollection;
 
@@ -46,11 +48,13 @@ public class TagMongoRepositoryIT {
 				mongoContainer.getContainerIpAddress(),
 				mongoContainer.getMappedPort(MONGO_PORT))
 				);
+		clientSession = mongoClient.startSession();
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 
 		database.drop();
+		database.createCollection(TAGS_COLLECTION);
 		tagCollection = database.getCollection(TAGS_COLLECTION);
 	}
 
@@ -58,6 +62,7 @@ public class TagMongoRepositoryIT {
 	public void tearDown() {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
+		clientSession.close();
 		mongoClient.close();
 	}
 
@@ -74,9 +79,10 @@ public class TagMongoRepositoryIT {
 		Tag secondTag = new Tag("2", "Important");
 		addTagToCollection(firstTag, Collections.emptyList());
 		addTagToCollection(secondTag, Collections.emptyList());
-		
+
 		// Exercise and verify phases
-		assertThat(tagMongoRepository.findAll()).containsExactly(firstTag, secondTag);
+		assertThat(tagMongoRepository.findAll(clientSession))
+		.containsExactly(firstTag, secondTag);
 	}
 
 	@Test
@@ -88,7 +94,8 @@ public class TagMongoRepositoryIT {
 		addTagToCollection(secondTag, Collections.emptyList());
 
 		// Exercise and verify phases
-		assertThat(tagMongoRepository.findById(secondTag.getId())).isEqualTo(secondTag);
+		assertThat(tagMongoRepository.findById(secondTag.getId(), clientSession))
+		.isEqualTo(secondTag);
 	}
 
 	@Test
@@ -97,10 +104,11 @@ public class TagMongoRepositoryIT {
 		Tag tag = new Tag("1", "Work");
 
 		// Exercise phase
-		tagMongoRepository.save(tag);
+		tagMongoRepository.save(tag, clientSession);
 
 		// Verify phase
-		assertThat(getAllTagsFromDatabase()).containsExactly(tag);
+		assertThat(getAllTagsFromDatabase())
+		.containsExactly(tag);
 	}
 
 	@Test
@@ -110,10 +118,11 @@ public class TagMongoRepositoryIT {
 		addTagToCollection(tag, Collections.emptyList());
 
 		// Exercise phase
-		tagMongoRepository.delete(tag);
+		tagMongoRepository.delete(tag, clientSession);
 
 		// Verify phase
-		assertThat(getAllTagsFromDatabase()).isEmpty();
+		assertThat(getAllTagsFromDatabase())
+		.isEmpty();
 	}
 
 	@Test
@@ -123,8 +132,8 @@ public class TagMongoRepositoryIT {
 		addTagToCollection(tag, Arrays.asList("1", "2"));
 
 		// Exercise and verify phases
-		assertThat(tagMongoRepository.getTasksByTagId(tag.getId()))
-			.containsExactly("1", "2");
+		assertThat(tagMongoRepository.getTasksByTagId(tag.getId(), clientSession))
+		.containsExactly("1", "2");
 	}
 
 	@Test
@@ -134,10 +143,11 @@ public class TagMongoRepositoryIT {
 		addTagToCollection(tag, Arrays.asList("1"));
 
 		// Exercise phase
-		tagMongoRepository.addTaskToTag(tag.getId(), "2");
+		tagMongoRepository.addTaskToTag(tag.getId(), "2", clientSession);
 
 		// Verify phase
-		assertThat(getTasksAssignedToTag(tag)).containsExactly("1", "2");
+		assertThat(getTasksAssignedToTag(tag))
+		.containsExactly("1", "2");
 	}
 
 	@Test
@@ -147,10 +157,11 @@ public class TagMongoRepositoryIT {
 		addTagToCollection(tag, Arrays.asList("1", "2"));
 
 		// Exercise phase
-		tagMongoRepository.removeTaskFromTag(tag.getId(), "2");
+		tagMongoRepository.removeTaskFromTag(tag.getId(), "2", clientSession);
 
 		// Verify phase
-		assertThat(getTasksAssignedToTag(tag)).containsExactly("1");
+		assertThat(getTasksAssignedToTag(tag))
+		.containsExactly("1");
 	}
 
 	private void addTagToCollection(Tag tag, List<String> tasks) {

@@ -18,6 +18,7 @@ import org.testcontainers.containers.GenericContainer;
 
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -28,13 +29,14 @@ public class TaskMongoRepositoryIT {
 	private static final int MONGO_PORT = 27017;
 	private static final String DB_NAME = "todoapp";
 	private static final String TASKS_COLLECTION = "tasks";
-	
+
 	@SuppressWarnings("rawtypes")
 	@ClassRule
 	public static final GenericContainer mongoContainer =
 	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
 
 	private MongoClient mongoClient;
+	private ClientSession clientSession;
 	private TaskMongoRepository taskMongoRepository;
 	private MongoCollection<Document> taskCollection;
 
@@ -46,11 +48,13 @@ public class TaskMongoRepositoryIT {
 				mongoContainer.getContainerIpAddress(),
 				mongoContainer.getMappedPort(MONGO_PORT))
 				);
+		clientSession = mongoClient.startSession();
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 
 		database.drop();
+		database.createCollection(TASKS_COLLECTION);
 		taskCollection = database.getCollection(TASKS_COLLECTION);
 	}
 
@@ -58,6 +62,7 @@ public class TaskMongoRepositoryIT {
 	public void tearDown() {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
+		clientSession.close();
 		mongoClient.close();
 	}
 
@@ -76,7 +81,8 @@ public class TaskMongoRepositoryIT {
 		addTaskToDatabase(secondTask, Collections.emptyList());
 
 		// Exercise and verify phases
-		assertThat(taskMongoRepository.findAll()).containsExactly(firstTask, secondTask);
+		assertThat(taskMongoRepository.findAll(clientSession))
+		.containsExactly(firstTask, secondTask);
 	}
 
 	@Test
@@ -88,7 +94,8 @@ public class TaskMongoRepositoryIT {
 		addTaskToDatabase(secondTask, Collections.emptyList());
 
 		// Exercise and verify phases
-		assertThat(taskMongoRepository.findById(secondTask.getId())).isEqualTo(secondTask);
+		assertThat(taskMongoRepository.findById(secondTask.getId(), clientSession))
+		.isEqualTo(secondTask);
 	}
 
 	@Test
@@ -97,10 +104,11 @@ public class TaskMongoRepositoryIT {
 		Task task = new Task("1", "Buy groceries");
 
 		// Exercise phase
-		taskMongoRepository.save(task);
+		taskMongoRepository.save(task, clientSession);
 
 		// Verify phase
-		assertThat(getAllTasksFromDatabase()).containsExactly(task);
+		assertThat(getAllTasksFromDatabase())
+		.containsExactly(task);
 	}
 
 	@Test
@@ -110,10 +118,11 @@ public class TaskMongoRepositoryIT {
 		addTaskToDatabase(task, Collections.emptyList());
 
 		// Exercise phase
-		taskMongoRepository.delete(task);
+		taskMongoRepository.delete(task, clientSession);
 
 		// Verify phase
-		assertThat(getAllTasksFromDatabase()).isEmpty();
+		assertThat(getAllTasksFromDatabase())
+		.isEmpty();
 	}
 
 	@Test
@@ -123,7 +132,7 @@ public class TaskMongoRepositoryIT {
 		addTaskToDatabase(task, Arrays.asList("1", "2"));
 
 		// Exercise and verify phases
-		assertThat(taskMongoRepository.getTagsByTaskId(task.getId()))
+		assertThat(taskMongoRepository.getTagsByTaskId(task.getId(), clientSession))
 		.containsExactly("1", "2");
 	}
 
@@ -134,10 +143,11 @@ public class TaskMongoRepositoryIT {
 		addTaskToDatabase(task, Arrays.asList("1"));
 
 		// Exercise phase
-		taskMongoRepository.addTagToTask(task.getId(), "2");
+		taskMongoRepository.addTagToTask(task.getId(), "2", clientSession);
 
 		// Verify phase
-		assertThat(getTagsAssignedToTask(task)).containsExactly("1", "2");
+		assertThat(getTagsAssignedToTask(task))
+		.containsExactly("1", "2");
 	}
 
 	@Test
@@ -147,10 +157,11 @@ public class TaskMongoRepositoryIT {
 		addTaskToDatabase(task, Arrays.asList("1", "2"));
 
 		// Exercise phase
-		taskMongoRepository.removeTagFromTask(task.getId(), "2");
+		taskMongoRepository.removeTagFromTask(task.getId(), "2", clientSession);
 
 		// Verify phase
-		assertThat(getTagsAssignedToTask(task)).containsExactly("1");
+		assertThat(getTagsAssignedToTask(task))
+		.containsExactly("1");
 	}
 
 	private void addTaskToDatabase(Task task, List<String> tags) {

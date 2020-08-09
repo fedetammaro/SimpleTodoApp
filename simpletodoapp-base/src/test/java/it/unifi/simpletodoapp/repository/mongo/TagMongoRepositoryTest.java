@@ -2,7 +2,6 @@ package it.unifi.simpletodoapp.repository.mongo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,65 +11,70 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.testcontainers.containers.GenericContainer;
 
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 
-import de.bwaldvogel.mongo.MongoServer;
-import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import it.unifi.simpletodoapp.model.Tag;
 
 public class TagMongoRepositoryTest {
-	private static MongoServer mongoServer;
-	private static InetSocketAddress serverAddress;
 	private MongoClient mongoClient;
+	private ClientSession clientSession;
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> tagCollection;
 
 	private static final String DB_NAME = "todoappdb";
 	private static final String DB_COLLECTION = "tags";
+	private static final int MONGO_PORT = 27017;
 
-	@BeforeClass
-	public static void startServer() {
-		/* We initialize the in-memory mongo database server
-		 * and we obtain its address  */
-		mongoServer = new MongoServer(new MemoryBackend());
-		serverAddress = mongoServer.bind();
-	}
-
-	@AfterClass
-	public static void stopServer() {
-		// Stop the server after all tests have been executed
-		mongoServer.shutdown();
-	}
-
+	@SuppressWarnings("rawtypes")
+	@ClassRule
+	public static final GenericContainer mongoContainer =
+	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
+	
 	@Before
-	public void setUp() {
-		/* We initialize the mongo client to use the in-memory database
-		 * and the repository to use the mongo client on the specified
-		 * database and collection */
-		mongoClient = new MongoClient(new ServerAddress(serverAddress));
-		mongoClient.getDatabase(DB_NAME).drop();
-
+	public void setup() {
+		/* Creates the mongo client by connecting it to the mongodb instance, the tag
+		 * repository and collection; also empties the database before each test */
+		mongoClient = new MongoClient(new ServerAddress(
+				mongoContainer.getContainerIpAddress(),
+				mongoContainer.getMappedPort(MONGO_PORT))
+				);
+		clientSession = mongoClient.startSession();
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, DB_COLLECTION);
-		tagCollection = mongoClient.getDatabase(DB_NAME)
-				.getCollection(DB_COLLECTION);
-	}
 
+		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
+
+		database.drop();
+		database.createCollection(DB_COLLECTION);
+		tagCollection = database.getCollection(DB_COLLECTION);
+	}
+	
 	@After
 	public void tearDown() {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
+		clientSession.close();
 		mongoClient.close();
+	}
+
+	@AfterClass
+	public static void stopContainer() {
+		// Stops the container after all methods have been executed
+		mongoContainer.stop();
 	}
 	
 	@Test
 	public void testFindAllTagsWhenCollectionIsEmpty() {
 		// Exercise and verify phases (no setup phase needed)
-		assertThat(tagMongoRepository.findAll()).isEqualTo(Collections.emptyList());
+		assertThat(tagMongoRepository.findAll(clientSession))
+		.isEqualTo(Collections.emptyList());
 	}
 	
 	@Test
@@ -80,16 +84,18 @@ public class TagMongoRepositoryTest {
 		addTagToDatabase(tag, Collections.emptyList());
 
 		// Exercise phase
-		List<Tag> retrievedTags = tagMongoRepository.findAll();
+		List<Tag> retrievedTags = tagMongoRepository.findAll(clientSession);
 
 		// Verify phase
-		assertThat(retrievedTags).containsExactly(tag);
+		assertThat(retrievedTags)
+		.containsExactly(tag);
 	}
 	
 	@Test
 	public void testFindTagByIdWhenCollectionIsEmpty() {
 		// Exercise and verify phases (no setup phase required)
-		assertThat(tagMongoRepository.findById("1")).isNull();
+		assertThat(tagMongoRepository.findById("1", clientSession))
+		.isNull();
 	}
 
 	@Test
@@ -101,7 +107,8 @@ public class TagMongoRepositoryTest {
 		addTagToDatabase(secondTag, Collections.emptyList());
 
 		// Exercise and verify phases
-		assertThat(tagMongoRepository.findById("2")).isEqualTo(secondTag);
+		assertThat(tagMongoRepository.findById("2", clientSession))
+		.isEqualTo(secondTag);
 	}
 	
 	@Test
@@ -110,10 +117,11 @@ public class TagMongoRepositoryTest {
 		Tag tag = new Tag("1", "Work");
 		
 		// Exercise phase
-		tagMongoRepository.save(tag);
+		tagMongoRepository.save(tag, clientSession);
 		
 		// Verify phase
-		assertThat(getTagsFromDatabase()).isEqualTo(Collections.singletonList(tag));
+		assertThat(getTagsFromDatabase())
+		.isEqualTo(Collections.singletonList(tag));
 	}
 	
 	@Test
@@ -123,10 +131,11 @@ public class TagMongoRepositoryTest {
 		addTagToDatabase(tag, Collections.emptyList());
 		
 		// Exercise phase
-		tagMongoRepository.delete(tag);
+		tagMongoRepository.delete(tag, clientSession);
 		
 		// Verify phase
-		assertThat(getTagsFromDatabase()).isEmpty();
+		assertThat(getTagsFromDatabase())
+		.isEmpty();
 	}
 	
 	@Test
@@ -136,10 +145,11 @@ public class TagMongoRepositoryTest {
 		addTagToDatabase(tag, Collections.emptyList());
 		
 		// Exercise phase
-		List<String> retrievedTasks = tagMongoRepository.getTasksByTagId(tag.getId());
+		List<String> retrievedTasks = tagMongoRepository.getTasksByTagId(tag.getId(), clientSession);
 		
 		// Verify phase
-		assertThat(retrievedTasks).isEqualTo(Collections.emptyList());
+		assertThat(retrievedTasks)
+		.isEqualTo(Collections.emptyList());
 	}
 	
 	@Test
@@ -149,10 +159,11 @@ public class TagMongoRepositoryTest {
 		addTagToDatabase(tag, Collections.singletonList("1"));
 		
 		// Exercise phase
-		List<String> retrievedTasks = tagMongoRepository.getTasksByTagId(tag.getId());
+		List<String> retrievedTasks = tagMongoRepository.getTasksByTagId(tag.getId(), clientSession);
 		
 		// Verify phase
-		assertThat(retrievedTasks).isEqualTo(Collections.singletonList("1"));
+		assertThat(retrievedTasks)
+		.isEqualTo(Collections.singletonList("1"));
 	}
 	
 	@Test
@@ -162,10 +173,11 @@ public class TagMongoRepositoryTest {
 		addTagToDatabase(tag, Collections.emptyList());
 		
 		// Exercise phase
-		tagMongoRepository.addTaskToTag(tag.getId(), "1");
+		tagMongoRepository.addTaskToTag(tag.getId(), "1", clientSession);
 		
 		// Verify phase
-		assertThat(tagMongoRepository.getTasksByTagId(tag.getId())).containsExactly("1");
+		assertThat(tagMongoRepository.getTasksByTagId(tag.getId(), clientSession))
+		.containsExactly("1");
 	}
 	
 	@Test
@@ -175,10 +187,11 @@ public class TagMongoRepositoryTest {
 		addTagToDatabase(tag, Collections.singletonList("1"));
 				
 		// Exercise phase
-		tagMongoRepository.removeTaskFromTag(tag.getId(), "1");
+		tagMongoRepository.removeTaskFromTag(tag.getId(), "1", clientSession);
 				
 		// Verify phase
-		assertThat(tagMongoRepository.getTasksByTagId(tag.getId())).isEmpty();
+		assertThat(tagMongoRepository.getTasksByTagId(tag.getId(), clientSession))
+		.isEmpty();
 	}
 	
 	private void addTagToDatabase(Tag tag, List<String> tasks) {

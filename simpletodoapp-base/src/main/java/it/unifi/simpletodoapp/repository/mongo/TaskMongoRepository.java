@@ -8,14 +8,14 @@ import java.util.stream.StreamSupport;
 import org.bson.Document;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
 import it.unifi.simpletodoapp.model.Task;
-import it.unifi.simpletodoapp.repository.TaskRepository;
 
-public class TaskMongoRepository implements TaskRepository {
+public class TaskMongoRepository {
 	private static final String ID = "id";
 	private static final String DESCRIPTION = "description";
 	private static final String TAGS = "tags";
@@ -26,17 +26,16 @@ public class TaskMongoRepository implements TaskRepository {
 				.getCollection(dbCollection);
 	}
 
-	@Override
-	public List<Task> findAll() {
+	public List<Task> findAll(ClientSession clientSession) {
 		return StreamSupport
-				.stream(taskCollection.find().spliterator(), false)
+				.stream(taskCollection.find(clientSession).spliterator(), false)
 				.map(this::createTaskFromMongoDocument)
 				.collect(Collectors.toList());
 	}
 
-	@Override
-	public Task findById(String taskId) {
-		Document document = taskCollection.find(Filters.eq(ID, taskId)).first();
+	public Task findById(String taskId, ClientSession clientSession) {
+		Document document = taskCollection.find(clientSession, Filters.eq(ID, taskId))
+				.first();
 		
 		if (document != null)
 			return createTaskFromMongoDocument(document);
@@ -44,35 +43,32 @@ public class TaskMongoRepository implements TaskRepository {
 			return null;
 	}
 
-	@Override
-	public void save(Task task) {
-		taskCollection.insertOne(new Document()
+	public void save(Task task, ClientSession clientSession) {
+		taskCollection.insertOne(clientSession, new Document()
 				.append(ID, task.getId())
 				.append(DESCRIPTION, task.getDescription())
 				.append(TAGS, Collections.emptyList())
 				);		
 	}
 
-	@Override
-	public void delete(Task task) {
-		taskCollection.deleteOne(Filters.eq(ID, task.getId()));
+	public void delete(Task task, ClientSession clientSession) {
+		taskCollection.deleteOne(clientSession, Filters.eq(ID, task.getId()));
 	}
 
-	@Override
-	public List<String> getTagsByTaskId(String taskId) {
-		return taskCollection.find(Filters.eq(ID, taskId)).first().getList(TAGS, String.class);
+	public List<String> getTagsByTaskId(String taskId, ClientSession clientSession) {
+		return taskCollection.find(clientSession, Filters.eq(ID, taskId))
+				.first()
+				.getList(TAGS, String.class);
 		
 	}
-
-	@Override
-	public void addTagToTask(String taskId, String tagId) {
-		taskCollection.updateOne(Filters.eq(ID, taskId), 
+	
+	public void addTagToTask(String taskId, String tagId, ClientSession clientSession) {
+		taskCollection.updateOne(clientSession, Filters.eq(ID, taskId), 
 				Updates.push(TAGS, tagId));
 	}
 
-	@Override
-	public void removeTagFromTask(String taskId, String tagId) {
-		taskCollection.updateOne(Filters.eq(ID, taskId), 
+	public void removeTagFromTask(String taskId, String tagId, ClientSession clientSession) {
+		taskCollection.updateOne(clientSession, Filters.eq(ID, taskId), 
 				Updates.pull(TAGS, tagId));
 	}
 	

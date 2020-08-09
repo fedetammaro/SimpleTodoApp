@@ -1,7 +1,11 @@
 package it.unifi.simpletodoapp.repository.mongo;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.mongodb.MongoClient;
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.TransactionBody;
 
 import it.unifi.simpletodoapp.repository.CompositeTransactionCode;
 import it.unifi.simpletodoapp.repository.TagTransactionCode;
@@ -9,6 +13,7 @@ import it.unifi.simpletodoapp.repository.TaskTransactionCode;
 import it.unifi.simpletodoapp.repository.TransactionManager;
 
 public class TransactionManagerMongo implements TransactionManager {
+	private final static Logger LOGGER = Logger.getLogger(TransactionManagerMongo.class.getName());
 	private MongoClient mongoClient;
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
@@ -25,12 +30,13 @@ public class TransactionManagerMongo implements TransactionManager {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
 		
+		TransactionBody<T> transactionBody =
+				() -> code.apply(taskMongoRepository, clientSession);
+		
 		try {
-			clientSession.startTransaction();
-			value = code.apply(taskMongoRepository);
-			clientSession.commitTransaction();
+			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			clientSession.abortTransaction();
+			LOGGER.log(Level.SEVERE, "Task transaction failed, aborting...");
 		} finally {
 			clientSession.close();
 		}
@@ -43,12 +49,13 @@ public class TransactionManagerMongo implements TransactionManager {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
 		
+		TransactionBody<T> transactionBody =
+				() -> code.apply(tagMongoRepository, clientSession);
+		
 		try {
-			clientSession.startTransaction();
-			value = code.apply(tagMongoRepository);
-			clientSession.commitTransaction();
+			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			clientSession.abortTransaction();
+			LOGGER.log(Level.SEVERE, "Tag transaction failed, aborting...");
 		} finally {
 			clientSession.close();
 		}
@@ -61,12 +68,13 @@ public class TransactionManagerMongo implements TransactionManager {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
 		
+		TransactionBody<T> transactionBody =
+				() -> code.apply(taskMongoRepository, tagMongoRepository, clientSession);
+		
 		try {
-			clientSession.startTransaction();
-			value = code.apply(taskMongoRepository, tagMongoRepository);
-			clientSession.commitTransaction();
+			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			clientSession.abortTransaction();
+			LOGGER.log(Level.SEVERE, "Tag transaction failed, aborting...");
 		} finally {
 			clientSession.close();
 		}

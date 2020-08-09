@@ -21,6 +21,7 @@ import org.testcontainers.containers.GenericContainer;
 
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -58,8 +59,9 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	private JPanelFixture contentPanel;
 	private JPanelFixture tasksPanel;
 	private JPanelFixture tagsPanel;
-	private MongoClient mongoClient;
 	
+	private MongoClient mongoClient;
+	private ClientSession clientSession;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
 	
@@ -73,6 +75,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 				mongoContainer.getContainerIpAddress(),
 				mongoContainer.getMappedPort(MONGO_PORT))
 				);
+		clientSession = mongoClient.startSession();
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
@@ -80,6 +83,8 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 
 		database.drop();
+		database.createCollection(TASKS_COLLECTION);
+		database.createCollection(TAGS_COLLECTION);
 		taskCollection = database.getCollection(TASKS_COLLECTION);
 		tagCollection = database.getCollection(TAGS_COLLECTION);
 		
@@ -102,6 +107,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	public void onTearDown() {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
+		clientSession.close();
 		mongoClient.close();
 	}
 	
@@ -191,7 +197,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 				() -> todoController.getAllTasks()
 				);
 		
-		taskMongoRepository.delete(task);
+		taskMongoRepository.delete(task, clientSession);
 
 		// Exercise phase
 		tasksPanel.list("tasksTaskList").selectItem(0);
@@ -305,7 +311,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		tasksPanel.list("tasksTaskList").selectItem(0);
 		tasksPanel.list("assignedTagsList").selectItem(0);
 		
-		taskMongoRepository.removeTagFromTask(task.getId(), tag.getId());
+		taskMongoRepository.removeTagFromTask(task.getId(), tag.getId(), clientSession);
 		
 		tasksPanel.button("btnRemoveTag").click();
 
@@ -408,7 +414,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		GuiActionRunner.execute(
 				() -> todoController.getAllTags()
 				);
-		tagMongoRepository.delete(tag);
+		tagMongoRepository.delete(tag, clientSession);
 
 		// Exercise phase
 		tagsPanel.list("tagsTagList").selectItem(0);
@@ -486,7 +492,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		tagsPanel.list("tagsTagList").selectItem(0);
 		tagsPanel.list("assignedTasksList").selectItem(0);
 		
-		tagMongoRepository.removeTaskFromTag(tag.getId(), task.getId());
+		tagMongoRepository.removeTaskFromTag(tag.getId(), task.getId(), clientSession);
 		
 		tagsPanel.button("btnRemoveTask").click();
 
