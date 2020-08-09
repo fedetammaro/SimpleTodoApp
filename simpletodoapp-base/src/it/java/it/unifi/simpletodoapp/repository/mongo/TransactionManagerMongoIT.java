@@ -1,6 +1,7 @@
 package it.unifi.simpletodoapp.repository.mongo;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.assertThrows;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import org.testcontainers.containers.GenericContainer;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
@@ -99,19 +101,22 @@ public class TransactionManagerMongoIT {
 		assertThat(getAllTasksFromDatabase())
 		.containsExactly(task);
 	}
-	
-	@Test(expected=RuntimeException.class)
+
+	@Test
 	public void testTaskTransactionAborted() {
 		// Setup phase
 		mongoClient.getDatabase(DB_NAME).drop();
 		Task task = new Task("1", "Start using TDD");
-		
-		// Exercise phase
-		transactionManagerMongo.doTaskTransaction(
-				(taskMongoRepository, clientSession) -> {
-					taskMongoRepository.save(task, clientSession);
-					return null;
-				});
+
+		// Exercise and verify phases
+		MongoException exception = assertThrows(MongoException.class,
+				() -> transactionManagerMongo.doTaskTransaction(
+						(taskMongoRepository, clientSession) -> {
+							taskMongoRepository.save(task, clientSession);
+							return null;
+						}));
+		assertThat(exception.getMessage())
+		.isEqualTo("Task transaction failed, aborting");
 	}
 
 	@Test
@@ -130,19 +135,22 @@ public class TransactionManagerMongoIT {
 		assertThat(getAllTagsFromDatabase())
 		.containsExactly(tag);
 	}
-	
-	@Test(expected=RuntimeException.class)
+
+	@Test
 	public void testTagTransactionAborted() {
 		// Setup phase
 		mongoClient.getDatabase(DB_NAME).drop();
 		Tag tag = new Tag("1", "Work");
 
-		// Exercise phase
-		transactionManagerMongo.doTagTransaction(
-				(tagMongoRepository, clientSession) -> {
-					tagMongoRepository.save(tag, clientSession);
-					return null;
-				});
+		// Exercise and verify phases
+		MongoException exception = assertThrows(MongoException.class,
+				() -> transactionManagerMongo.doTagTransaction(
+						(tagMongoRepository, clientSession) -> {
+							tagMongoRepository.save(tag, clientSession);
+							return null;
+						}));
+		assertThat(exception.getMessage())
+		.isEqualTo("Tag transaction failed, aborting");
 	}
 
 	@Test
@@ -168,22 +176,24 @@ public class TransactionManagerMongoIT {
 		assertThat(getTasksAssignedToTag(tag))
 		.containsExactly("1");
 	}
-	
-	@Test(expected=RuntimeException.class)
+
+	@Test
 	public void testCompositeTransactionAborted() {
 		// Setup phase
 		mongoClient.getDatabase(DB_NAME).drop();
 		Task task = new Task("1", "Start using TDD");
 		Tag tag = new Tag("1", "Work");
 
-		// Exercise phase
-		transactionManagerMongo.doCompositeTransaction(
-				(taskMongoRepository, tagMongoRepository, clientSession) -> {
-					taskMongoRepository.save(task, clientSession);
-					tagMongoRepository.save(tag, clientSession);
-					
-					return null;
-				});
+		// Exercise and verify phases
+		MongoException exception = assertThrows(MongoException.class,
+				() -> transactionManagerMongo.doCompositeTransaction(
+						(taskMongoRepository, tagMongoRepository, clientSession) -> {
+							taskMongoRepository.save(task, clientSession);
+							tagMongoRepository.save(tag, clientSession);
+							return null;
+						}));
+		assertThat(exception.getMessage())
+		.isEqualTo("Composite transaction failed, aborting");
 	}
 
 	private List<Task> getAllTasksFromDatabase() {

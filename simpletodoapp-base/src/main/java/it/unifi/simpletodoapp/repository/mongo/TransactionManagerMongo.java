@@ -1,9 +1,7 @@
 package it.unifi.simpletodoapp.repository.mongo;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.TransactionBody;
 
@@ -13,7 +11,6 @@ import it.unifi.simpletodoapp.repository.TaskTransactionCode;
 import it.unifi.simpletodoapp.repository.TransactionManager;
 
 public class TransactionManagerMongo implements TransactionManager {
-	private static final Logger LOGGER = Logger.getLogger(TransactionManagerMongo.class.getName());
 	private MongoClient mongoClient;
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
@@ -36,7 +33,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			throw new RuntimeException("Task transaction failed, aborting");
+			throw new MongoException("Task transaction failed, aborting");
 		} finally {
 			clientSession.close();
 		}
@@ -55,7 +52,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			throw new RuntimeException("Task transaction failed, aborting");
+			throw new MongoException("Tag transaction failed, aborting");
 		} finally {
 			clientSession.close();
 		}
@@ -74,7 +71,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			throw new RuntimeException("Task transaction failed, aborting");
+			throw new MongoException("Composite transaction failed, aborting");
 		} finally {
 			clientSession.close();
 		}
