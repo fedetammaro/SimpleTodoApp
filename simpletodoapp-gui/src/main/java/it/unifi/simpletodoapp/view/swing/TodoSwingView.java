@@ -32,9 +32,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 public class TodoSwingView extends JFrame implements TodoView {
-
 	private static final long serialVersionUID = -8047380292195826724L;
-
 	private transient TodoController todoController;
 
 	private JPanel contentPane;
@@ -77,7 +75,6 @@ public class TodoSwingView extends JFrame implements TodoView {
 		@Override
 		public boolean equals(Object object) {
 			TaskViewModel taskViewModel = (TaskViewModel) object;
-
 			return taskViewModel != null && taskViewModel.task.equals(this.task);
 		}
 	}
@@ -109,7 +106,6 @@ public class TodoSwingView extends JFrame implements TodoView {
 		@Override
 		public boolean equals(Object object) {
 			TagViewModel tagViewModel = (TagViewModel) object;
-
 			return tagViewModel != null && tagViewModel.tag.equals(this.tag);
 		}
 	}

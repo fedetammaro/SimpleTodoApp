@@ -11,12 +11,12 @@ import it.unifi.simpletodoapp.view.TodoView;
 public class TodoController {
 	private TodoService todoService;
 	private TodoView todoView;
-	
+
 	public TodoController(TodoService todoService, TodoView todoView) {
 		this.todoService = todoService;
 		this.todoView = todoView;
 	}
-	
+
 	public void getAllTasks() {
 		todoView.showAllTasks(todoService.getAllTasks());
 	}
@@ -80,7 +80,7 @@ public class TodoController {
 			todoView.taskError(noTaskErrorMessage(task));
 			return;
 		}
-		
+
 		if (todoService.findTagById(tag.getId()) == null) {
 			todoView.taskError(noTagErrorMessage(tag));
 			return;
@@ -102,7 +102,7 @@ public class TodoController {
 			todoView.taskError(noTaskErrorMessage(task));
 			return;
 		}
-		
+
 		if (todoService.findTagById(tag.getId()) == null) {
 			todoView.taskError(noTagErrorMessage(tag));
 			return;
@@ -118,20 +118,20 @@ public class TodoController {
 					" assigned to task with ID " + task.getId());
 		}
 	}
-	
+
 	public void removeTaskFromTag(Tag tag, Task task) {
 		if (todoService.findTaskById(task.getId()) == null) {
 			todoView.tagError(noTaskErrorMessage(task));
 			return;
 		}
-		
+
 		if (todoService.findTagById(tag.getId()) == null) {
 			todoView.tagError(noTagErrorMessage(tag));
 			return;
 		}
-		
+
 		List<String> currentTasks = todoService.findTasksByTagId(tag.getId());
-		
+
 		if (currentTasks.stream().anyMatch(t -> t.equals(task.getId()))) {
 			todoService.removeTagFromTask(task.getId(), tag.getId());
 			todoView.taskRemovedFromTag(task);
@@ -180,11 +180,11 @@ public class TodoController {
 
 		return tasks;
 	}
-	
+
 	private String noTaskErrorMessage(Task task) {
 		return "No task with ID " + task.getId();
 	}
-	
+
 	private String noTagErrorMessage(Tag tag) {
 		return "No tag with ID " + tag.getId();
 	}

@@ -113,6 +113,7 @@
 				<configuration>
 					<excludedClasses>
 						<param>*Test</param>
+						<param>*IT</param>
 						<param>it.unifi.simpletodoapp.TodoApplication</param>
 						<param>it.unifi.simpletodoapp.model.*</param>
 						<param>it.unifi.simpletodoapp.view.*</param>
@@ -215,7 +216,6 @@
 						<configuration>
 							<excludes>
 								<exclude>it/unifi/simpletodoapp/model/*.*</exclude>
-								<exclude>it/unifi/simpletodoapp/repository/mongo/TransactionManagerMongo.*</exclude>
 								<exclude>it/unifi/simpletodoapp/view/swing/TodoSwingView$TaskViewModel.class</exclude>
 								<exclude>it/unifi/simpletodoapp/view/swing/TodoSwingView$TaskListModel.class</exclude>
 								<exclude>it/unifi/simpletodoapp/view/swing/TodoSwingView$TagViewModel.class</exclude>

@@ -1,6 +1,7 @@
 package it.unifi.simpletodoapp.repository.mongo;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.assertThrows;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +16,9 @@ import org.junit.Test;
 import org.testcontainers.containers.GenericContainer;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -33,10 +36,11 @@ public class TransactionManagerMongoIT {
 	@ClassRule
 	public static final GenericContainer mongoContainer =
 	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
-	
+
 	private TransactionManagerMongo transactionManagerMongo;
-	
+
 	private MongoClient mongoClient;
+	private ClientSession clientSession;
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
@@ -51,14 +55,17 @@ public class TransactionManagerMongoIT {
 				mongoContainer.getContainerIpAddress(),
 				mongoContainer.getMappedPort(MONGO_PORT))
 				);
+		clientSession = mongoClient.startSession();
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
-		
+
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
 
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 
 		database.drop();
+		database.createCollection(TASKS_COLLECTION);
+		database.createCollection(TAGS_COLLECTION);
 		taskCollection = database.getCollection(TASKS_COLLECTION);
 		tagCollection = database.getCollection(TAGS_COLLECTION);
 	}
@@ -67,67 +74,128 @@ public class TransactionManagerMongoIT {
 	public void tearDown() {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
+		clientSession.close();
 		mongoClient.close();
 	}
-	
+
 
 	@AfterClass
 	public static void stopContainer() {
 		// Stops the container after all methods have been executed
 		mongoContainer.stop();
 	}
-	
+
 	@Test
 	public void testTaskTransaction() {
 		// Setup phase
 		Task task = new Task("1", "Start using TDD");
-		
+
 		// Exercise phase
-		transactionManagerMongo.doTaskTransaction(taskRepository -> {
-			taskRepository.save(task);
-			return null;
-		});
-		
+		transactionManagerMongo.doTaskTransaction(
+				(taskMongoRepository, clientSession) -> {
+					taskMongoRepository.save(task, clientSession);
+					return null;
+				});
+
 		// Verify phase
-		assertThat(getAllTasksFromDatabase()).containsExactly(task);
+		assertThat(getAllTasksFromDatabase())
+		.containsExactly(task);
 	}
-	
+
+	@Test
+	public void testTaskTransactionAborted() {
+		// Setup phase
+		mongoClient.getDatabase(DB_NAME).drop();
+		Task task = new Task("1", "Start using TDD");
+
+		// Exercise and verify phases
+		MongoException exception = assertThrows(MongoException.class,
+				() -> transactionManagerMongo.doTaskTransaction(
+						(taskMongoRepository, clientSession) -> {
+							taskMongoRepository.save(task, clientSession);
+							return null;
+						}));
+		assertThat(exception.getMessage())
+		.isEqualTo("Task transaction failed, aborting");
+	}
+
 	@Test
 	public void testTagTransaction() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
-		
+
 		// Exercise phase
-		transactionManagerMongo.doTagTransaction(tagRepository -> {
-			tagRepository.save(tag);
-			return null;
-		});
+		transactionManagerMongo.doTagTransaction(
+				(tagMongoRepository, clientSession) -> {
+					tagMongoRepository.save(tag, clientSession);
+					return null;
+				});
 
 		// Verify phase
-		assertThat(getAllTagsFromDatabase()).containsExactly(tag);
+		assertThat(getAllTagsFromDatabase())
+		.containsExactly(tag);
 	}
-	
+
+	@Test
+	public void testTagTransactionAborted() {
+		// Setup phase
+		mongoClient.getDatabase(DB_NAME).drop();
+		Tag tag = new Tag("1", "Work");
+
+		// Exercise and verify phases
+		MongoException exception = assertThrows(MongoException.class,
+				() -> transactionManagerMongo.doTagTransaction(
+						(tagMongoRepository, clientSession) -> {
+							tagMongoRepository.save(tag, clientSession);
+							return null;
+						}));
+		assertThat(exception.getMessage())
+		.isEqualTo("Tag transaction failed, aborting");
+	}
+
 	@Test
 	public void testCompositeTransaction() {
 		// Setup phase
 		Task task = new Task("1", "Start using TDD");
 		Tag tag = new Tag("1", "Work");
-		
+
 		// Exercise phase
-		transactionManagerMongo.doCompositeTransaction((taskRepository, tagRepository) -> {
-			taskRepository.save(task);
-			tagRepository.save(tag);
-			
-			taskRepository.addTagToTask(task.getId(), tag.getId());
-			tagRepository.addTaskToTag(tag.getId(), task.getId());
-			return null;
-		});
+		transactionManagerMongo.doCompositeTransaction(
+				(taskMongoRepository, tagMongoRepository, clientSession) -> {
+					taskMongoRepository.save(task, clientSession);
+					tagMongoRepository.save(tag, clientSession);
+
+					taskMongoRepository.addTagToTask(task.getId(), tag.getId(), clientSession);
+					tagMongoRepository.addTaskToTag(tag.getId(), task.getId(), clientSession);
+					return null;
+				});
 
 		// Verify phase
-		assertThat(getTagsAssignedToTask(task)).containsExactly("1");
-		assertThat(getTasksAssignedToTag(tag)).containsExactly("1");
+		assertThat(getTagsAssignedToTask(task))
+		.containsExactly("1");
+		assertThat(getTasksAssignedToTag(tag))
+		.containsExactly("1");
 	}
-	
+
+	@Test
+	public void testCompositeTransactionAborted() {
+		// Setup phase
+		mongoClient.getDatabase(DB_NAME).drop();
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+
+		// Exercise and verify phases
+		MongoException exception = assertThrows(MongoException.class,
+				() -> transactionManagerMongo.doCompositeTransaction(
+						(taskMongoRepository, tagMongoRepository, clientSession) -> {
+							taskMongoRepository.save(task, clientSession);
+							tagMongoRepository.save(tag, clientSession);
+							return null;
+						}));
+		assertThat(exception.getMessage())
+		.isEqualTo("Composite transaction failed, aborting");
+	}
+
 	private List<Task> getAllTasksFromDatabase() {
 		// Private method to directly retrieve all tasks from the collection
 		return StreamSupport
@@ -135,7 +203,7 @@ public class TransactionManagerMongoIT {
 				.map(d -> new Task(d.getString("id"), d.getString("description")))
 				.collect(Collectors.toList());
 	}
-	
+
 	private List<Tag> getAllTagsFromDatabase() {
 		// Private method to directly retrieve all tags from the collection
 		return StreamSupport
@@ -143,7 +211,7 @@ public class TransactionManagerMongoIT {
 				.map(d -> new Tag(d.getString("id"), d.getString("name")))
 				.collect(Collectors.toList());
 	}
-	
+
 	private List<String> getTagsAssignedToTask(Task task) {
 		/* Private method to directly retrieve all tags assigned to a task 
 		 * from the collection */
@@ -152,7 +220,7 @@ public class TransactionManagerMongoIT {
 				.first()
 				.getList("tags", String.class);
 	}
-	
+
 	private List<String> getTasksAssignedToTag(Tag tag) {
 		/* Private method to directly retrieve all tasks assigned to a tag 
 		 * from the collection */

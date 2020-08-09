@@ -77,6 +77,8 @@ public class TodoControllerServiceIT {
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 
 		database.drop();
+		database.createCollection(TASKS_COLLECTION);
+		database.createCollection(TAGS_COLLECTION);
 		taskCollection = database.getCollection(TASKS_COLLECTION);
 		tagCollection = database.getCollection(TAGS_COLLECTION);
 	}
@@ -117,7 +119,8 @@ public class TodoControllerServiceIT {
 		todoController.addTask(task);
 		
 		// Verify phase
-		assertThat(getAllTasksFromDatabase()).containsExactly(task);
+		assertThat(getAllTasksFromDatabase())
+		.containsExactly(task);
 		verify(todoSwingView).taskAdded(task);
 	}
 
@@ -131,7 +134,8 @@ public class TodoControllerServiceIT {
 		todoController.deleteTask(task);
 
 		// Verify phase
-		assertThat(getAllTasksFromDatabase()).isEmpty();
+		assertThat(getAllTasksFromDatabase())
+		.isEmpty();
 		verify(todoSwingView).taskDeleted(task);
 	}
 
@@ -157,7 +161,8 @@ public class TodoControllerServiceIT {
 		todoController.addTag(tag);
 
 		// Verify phase
-		assertThat(getAllTagsFromDatabase()).containsExactly(tag);
+		assertThat(getAllTagsFromDatabase())
+		.containsExactly(tag);
 		verify(todoSwingView).tagAdded(tag);
 	}
 
@@ -171,7 +176,8 @@ public class TodoControllerServiceIT {
 		todoController.removeTag(tag);
 
 		// Verify phase
-		assertThat(getAllTagsFromDatabase()).isEmpty();
+		assertThat(getAllTagsFromDatabase())
+		.isEmpty();
 		verify(todoSwingView).tagRemoved(tag);
 	}
 
@@ -187,8 +193,10 @@ public class TodoControllerServiceIT {
 		todoController.addTagToTask(task, tag);
 
 		// Verify phase
-		assertThat(getTagsAssignedToTask(task)).containsExactly("1");
-		assertThat(getTasksAssignedToTag(tag)).containsExactly("1");
+		assertThat(getTagsAssignedToTask(task))
+		.containsExactly("1");
+		assertThat(getTasksAssignedToTag(tag))
+		.containsExactly("1");
 		verify(todoSwingView).tagAddedToTask(tag);
 	}
 
@@ -204,8 +212,10 @@ public class TodoControllerServiceIT {
 		todoController.removeTagFromTask(task, tag);
 
 		// Verify phase
-		assertThat(getTagsAssignedToTask(task)).isEmpty();
-		assertThat(getTasksAssignedToTag(tag)).isEmpty();
+		assertThat(getTagsAssignedToTask(task))
+		.isEmpty();
+		assertThat(getTasksAssignedToTag(tag))
+		.isEmpty();
 		verify(todoSwingView).tagRemovedFromTask(tag);
 	}
 
