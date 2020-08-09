@@ -36,7 +36,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			LOGGER.log(Level.SEVERE, "Task transaction failed, aborting...");
+			throw new RuntimeException("Task transaction failed, aborting");
 		} finally {
 			clientSession.close();
 		}
@@ -55,7 +55,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			LOGGER.log(Level.SEVERE, "Tag transaction failed, aborting...");
+			throw new RuntimeException("Task transaction failed, aborting");
 		} finally {
 			clientSession.close();
 		}
@@ -74,7 +74,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
-			LOGGER.log(Level.SEVERE, "Tag transaction failed, aborting...");
+			throw new RuntimeException("Task transaction failed, aborting");
 		} finally {
 			clientSession.close();
 		}

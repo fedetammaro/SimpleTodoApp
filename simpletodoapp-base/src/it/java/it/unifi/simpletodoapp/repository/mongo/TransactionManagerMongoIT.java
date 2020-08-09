@@ -99,6 +99,20 @@ public class TransactionManagerMongoIT {
 		assertThat(getAllTasksFromDatabase())
 		.containsExactly(task);
 	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testTaskTransactionAborted() {
+		// Setup phase
+		mongoClient.getDatabase(DB_NAME).drop();
+		Task task = new Task("1", "Start using TDD");
+		
+		// Exercise phase
+		transactionManagerMongo.doTaskTransaction(
+				(taskMongoRepository, clientSession) -> {
+					taskMongoRepository.save(task, clientSession);
+					return null;
+				});
+	}
 
 	@Test
 	public void testTagTransaction() {
@@ -115,6 +129,20 @@ public class TransactionManagerMongoIT {
 		// Verify phase
 		assertThat(getAllTagsFromDatabase())
 		.containsExactly(tag);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testTagTransactionAborted() {
+		// Setup phase
+		mongoClient.getDatabase(DB_NAME).drop();
+		Tag tag = new Tag("1", "Work");
+
+		// Exercise phase
+		transactionManagerMongo.doTagTransaction(
+				(tagMongoRepository, clientSession) -> {
+					tagMongoRepository.save(tag, clientSession);
+					return null;
+				});
 	}
 
 	@Test
@@ -139,6 +167,23 @@ public class TransactionManagerMongoIT {
 		.containsExactly("1");
 		assertThat(getTasksAssignedToTag(tag))
 		.containsExactly("1");
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testCompositeTransactionAborted() {
+		// Setup phase
+		mongoClient.getDatabase(DB_NAME).drop();
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+
+		// Exercise phase
+		transactionManagerMongo.doCompositeTransaction(
+				(taskMongoRepository, tagMongoRepository, clientSession) -> {
+					taskMongoRepository.save(task, clientSession);
+					tagMongoRepository.save(tag, clientSession);
+					
+					return null;
+				});
 	}
 
 	private List<Task> getAllTasksFromDatabase() {
