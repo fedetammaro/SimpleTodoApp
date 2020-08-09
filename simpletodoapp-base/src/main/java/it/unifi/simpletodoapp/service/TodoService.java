@@ -8,7 +8,7 @@ import it.unifi.simpletodoapp.repository.TransactionManager;
 
 public class TodoService {
 	private TransactionManager transactionManager;
-	
+
 	public TodoService(TransactionManager transactionManager) {
 		this.transactionManager = transactionManager;
 	}

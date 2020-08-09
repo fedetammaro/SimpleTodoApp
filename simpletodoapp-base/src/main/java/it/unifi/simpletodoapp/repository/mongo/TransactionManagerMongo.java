@@ -14,7 +14,7 @@ public class TransactionManagerMongo implements TransactionManager {
 	private MongoClient mongoClient;
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
-	
+
 	public TransactionManagerMongo(MongoClient mongoClient, TaskMongoRepository taskMongoRepository,
 			TagMongoRepository tagMongoRepository) {
 		this.mongoClient = mongoClient;
@@ -26,10 +26,10 @@ public class TransactionManagerMongo implements TransactionManager {
 	public <T> T doTaskTransaction(TaskTransactionCode<T> code) {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
-		
-		TransactionBody<T> transactionBody =
+
+		TransactionBody<T> transactionBody = 
 				() -> code.apply(taskMongoRepository, clientSession);
-		
+
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
@@ -37,7 +37,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		} finally {
 			clientSession.close();
 		}
-		
+
 		return value;
 	}
 
@@ -45,10 +45,10 @@ public class TransactionManagerMongo implements TransactionManager {
 	public <T> T doTagTransaction(TagTransactionCode<T> code) {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
-		
+
 		TransactionBody<T> transactionBody =
 				() -> code.apply(tagMongoRepository, clientSession);
-		
+
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
@@ -56,7 +56,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		} finally {
 			clientSession.close();
 		}
-		
+
 		return value;
 	}
 
@@ -64,10 +64,10 @@ public class TransactionManagerMongo implements TransactionManager {
 	public <T> T doCompositeTransaction(CompositeTransactionCode<T> code) {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
-		
+
 		TransactionBody<T> transactionBody =
 				() -> code.apply(taskMongoRepository, tagMongoRepository, clientSession);
-		
+
 		try {
 			value = clientSession.withTransaction(transactionBody);
 		} catch(Exception e) {
@@ -75,7 +75,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		} finally {
 			clientSession.close();
 		}
-		
+
 		return value;
 	}
 

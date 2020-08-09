@@ -24,28 +24,28 @@ import com.mongodb.client.MongoDatabase;
 import it.unifi.simpletodoapp.model.Tag;
 
 public class TagMongoRepositoryTest {
+	private static final String DB_NAME = "todoappdb";
+	private static final String DB_COLLECTION = "tags";
+	private static final int MONGO_PORT = 27017;
+
 	private MongoClient mongoClient;
 	private ClientSession clientSession;
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> tagCollection;
 
-	private static final String DB_NAME = "todoappdb";
-	private static final String DB_COLLECTION = "tags";
-	private static final int MONGO_PORT = 27017;
-
 	@SuppressWarnings("rawtypes")
 	@ClassRule
 	public static final GenericContainer mongoContainer =
 	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
-	
+
 	@Before
 	public void setup() {
 		/* Creates the mongo client by connecting it to the mongodb instance, the tag
 		 * repository and collection; also empties the database before each test */
 		mongoClient = new MongoClient(new ServerAddress(
 				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT))
-				);
+				mongoContainer.getMappedPort(MONGO_PORT)
+				));
 		clientSession = mongoClient.startSession();
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, DB_COLLECTION);
 
@@ -55,7 +55,7 @@ public class TagMongoRepositoryTest {
 		database.createCollection(DB_COLLECTION);
 		tagCollection = database.getCollection(DB_COLLECTION);
 	}
-	
+
 	@After
 	public void tearDown() {
 		/* Close the client connection after each test so that it can
@@ -69,14 +69,14 @@ public class TagMongoRepositoryTest {
 		// Stops the container after all methods have been executed
 		mongoContainer.stop();
 	}
-	
+
 	@Test
 	public void testFindAllTagsWhenCollectionIsEmpty() {
 		// Exercise and verify phases (no setup phase needed)
 		assertThat(tagMongoRepository.findAll(clientSession))
 		.isEqualTo(Collections.emptyList());
 	}
-	
+
 	@Test
 	public void testFindAllTagsWhenCollectionIsNotEmpty() {
 		// Setup phase
@@ -90,7 +90,7 @@ public class TagMongoRepositoryTest {
 		assertThat(retrievedTags)
 		.containsExactly(tag);
 	}
-	
+
 	@Test
 	public void testFindTagByIdWhenCollectionIsEmpty() {
 		// Exercise and verify phases (no setup phase required)
@@ -110,90 +110,90 @@ public class TagMongoRepositoryTest {
 		assertThat(tagMongoRepository.findById("2", clientSession))
 		.isEqualTo(secondTag);
 	}
-	
+
 	@Test
 	public void testSaveTag() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
-		
+
 		// Exercise phase
 		tagMongoRepository.save(tag, clientSession);
-		
+
 		// Verify phase
 		assertThat(getTagsFromDatabase())
 		.isEqualTo(Collections.singletonList(tag));
 	}
-	
+
 	@Test
 	public void testDeleteTag() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		addTagToDatabase(tag, Collections.emptyList());
-		
+
 		// Exercise phase
 		tagMongoRepository.delete(tag, clientSession);
-		
+
 		// Verify phase
 		assertThat(getTagsFromDatabase())
 		.isEmpty();
 	}
-	
+
 	@Test
 	public void testGetTasksWhenTaskListIsEmpty() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		addTagToDatabase(tag, Collections.emptyList());
-		
+
 		// Exercise phase
 		List<String> retrievedTasks = tagMongoRepository.getTasksByTagId(tag.getId(), clientSession);
-		
+
 		// Verify phase
 		assertThat(retrievedTasks)
 		.isEqualTo(Collections.emptyList());
 	}
-	
+
 	@Test
 	public void testGetTasksWhenTaskListIsNotEmpty() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		addTagToDatabase(tag, Collections.singletonList("1"));
-		
+
 		// Exercise phase
 		List<String> retrievedTasks = tagMongoRepository.getTasksByTagId(tag.getId(), clientSession);
-		
+
 		// Verify phase
 		assertThat(retrievedTasks)
 		.isEqualTo(Collections.singletonList("1"));
 	}
-	
+
 	@Test
 	public void testAddTaskToTag() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		addTagToDatabase(tag, Collections.emptyList());
-		
+
 		// Exercise phase
 		tagMongoRepository.addTaskToTag(tag.getId(), "1", clientSession);
-		
+
 		// Verify phase
 		assertThat(tagMongoRepository.getTasksByTagId(tag.getId(), clientSession))
 		.containsExactly("1");
 	}
-	
+
 	@Test
 	public void testRemoveTaskFromTag() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		addTagToDatabase(tag, Collections.singletonList("1"));
-				
+
 		// Exercise phase
 		tagMongoRepository.removeTaskFromTag(tag.getId(), "1", clientSession);
-				
+
 		// Verify phase
 		assertThat(tagMongoRepository.getTasksByTagId(tag.getId(), clientSession))
 		.isEmpty();
 	}
-	
+
 	private void addTagToDatabase(Tag tag, List<String> tasks) {
 		// Private method to directly insert a tag in the collection
 		tagCollection.insertOne(new Document()

@@ -19,6 +19,7 @@ public class TagMongoRepository {
 	private static final String ID = "id";
 	private static final String NAME = "name";
 	private static final String TASKS = "tasks";
+
 	private MongoCollection<Document> tagCollection;
 
 	public TagMongoRepository(MongoClient mongoClient, String dbName, String dbCollection) {

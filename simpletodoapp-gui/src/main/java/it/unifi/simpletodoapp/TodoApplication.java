@@ -54,8 +54,7 @@ public class TodoApplication implements Callable<Void> {
 			todoSwingView.setTodoController(todoController);
 			todoSwingView.setVisible(true);
 		});
-		
+
 		return null;
 	}
-
 }

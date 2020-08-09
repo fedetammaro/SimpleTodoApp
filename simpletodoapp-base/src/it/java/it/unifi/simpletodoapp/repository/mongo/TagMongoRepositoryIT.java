@@ -46,8 +46,8 @@ public class TagMongoRepositoryIT {
 		 * repository and collection; also empties the database before each test */
 		mongoClient = new MongoClient(new ServerAddress(
 				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT))
-				);
+				mongoContainer.getMappedPort(MONGO_PORT)
+				));
 		clientSession = mongoClient.startSession();
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 
@@ -180,7 +180,6 @@ public class TagMongoRepositoryIT {
 				.map(d -> new Tag(d.getString("id"), d.getString("name")))
 				.collect(Collectors.toList());
 	}
-
 
 	private List<String> getTasksAssignedToTag(Tag tag) {
 		/* Private method to directly retrieve all tasks assigned to a tag 

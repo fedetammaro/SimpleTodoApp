@@ -38,7 +38,7 @@ public class TodoServiceTest {
 
 	@InjectMocks
 	private TodoService todoService;
-	
+
 	private ClientSession clientSession;
 
 	@Before
@@ -80,7 +80,7 @@ public class TodoServiceTest {
 		inOrder.verify(transactionManager).doTaskTransaction(any());
 		inOrder.verify(taskRepository).findAll(clientSession);
 		inOrder.verifyNoMoreInteractions();
-		
+
 		assertThat(tasks)
 		.isEqualTo(retrievedTasks);
 	}
@@ -100,7 +100,7 @@ public class TodoServiceTest {
 		inOrder.verify(transactionManager).doTaskTransaction(any());
 		inOrder.verify(taskRepository).findById(task.getId(), clientSession);
 		inOrder.verifyNoMoreInteractions();
-		
+
 		assertThat(task)
 		.isEqualTo(retrievedTask);
 	}
@@ -157,7 +157,7 @@ public class TodoServiceTest {
 		inOrder.verify(transactionManager).doTagTransaction(any());
 		inOrder.verify(tagRepository).findAll(clientSession);
 		inOrder.verifyNoMoreInteractions();
-		
+
 		assertThat(tags)
 		.isEqualTo(retrievedTags);
 	}
@@ -177,7 +177,7 @@ public class TodoServiceTest {
 		inOrder.verify(transactionManager).doTagTransaction(any());
 		inOrder.verify(tagRepository).findById(tag.getId(), clientSession);
 		inOrder.verifyNoMoreInteractions();
-		
+
 		assertThat(tag)
 		.isEqualTo(retrievedTag);
 	}
@@ -232,7 +232,7 @@ public class TodoServiceTest {
 		inOrder.verify(transactionManager).doTagTransaction(any());
 		inOrder.verify(tagRepository).getTasksByTagId(tag.getId(), clientSession);
 		inOrder.verifyNoMoreInteractions();
-		
+
 		assertThat(tasks)
 		.isEqualTo(retrievedTasks);
 	}
@@ -253,7 +253,7 @@ public class TodoServiceTest {
 		inOrder.verify(transactionManager).doTaskTransaction(any());
 		inOrder.verify(taskRepository).getTagsByTaskId(task.getId(), clientSession);
 		inOrder.verifyNoMoreInteractions();
-		
+
 		assertThat(tags)
 		.isEqualTo(retrievedTags);
 	}

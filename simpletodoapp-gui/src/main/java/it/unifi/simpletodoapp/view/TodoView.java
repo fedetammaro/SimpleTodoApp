@@ -6,7 +6,6 @@ import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
 public interface TodoView {
-
 	public void showAllTasks(List<Task> allTasks);
 	public void taskAdded(Task task);
 	public void taskError(String errorMessage);

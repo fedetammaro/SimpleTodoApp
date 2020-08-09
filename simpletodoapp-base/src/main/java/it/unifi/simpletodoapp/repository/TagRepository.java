@@ -7,7 +7,6 @@ import com.mongodb.client.ClientSession;
 import it.unifi.simpletodoapp.model.Tag;
 
 public interface TagRepository {
-
 	public List<Tag> findAll(ClientSession clientSession);
 	public Tag findById(String tagId, ClientSession clientSession);
 	public void save(Tag tag, ClientSession clientSession);

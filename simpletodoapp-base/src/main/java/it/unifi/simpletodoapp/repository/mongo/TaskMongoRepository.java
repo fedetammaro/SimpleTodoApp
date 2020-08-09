@@ -19,6 +19,7 @@ public class TaskMongoRepository {
 	private static final String ID = "id";
 	private static final String DESCRIPTION = "description";
 	private static final String TAGS = "tags";
+
 	private MongoCollection<Document> taskCollection;
 
 	public TaskMongoRepository(MongoClient mongoClient, String dbName, String dbCollection) {
@@ -36,7 +37,7 @@ public class TaskMongoRepository {
 	public Task findById(String taskId, ClientSession clientSession) {
 		Document document = taskCollection.find(clientSession, Filters.eq(ID, taskId))
 				.first();
-		
+
 		if (document != null)
 			return createTaskFromMongoDocument(document);
 		else
@@ -59,9 +60,9 @@ public class TaskMongoRepository {
 		return taskCollection.find(clientSession, Filters.eq(ID, taskId))
 				.first()
 				.getList(TAGS, String.class);
-		
+
 	}
-	
+
 	public void addTagToTask(String taskId, String tagId, ClientSession clientSession) {
 		taskCollection.updateOne(clientSession, Filters.eq(ID, taskId), 
 				Updates.push(TAGS, tagId));
@@ -71,7 +72,7 @@ public class TaskMongoRepository {
 		taskCollection.updateOne(clientSession, Filters.eq(ID, taskId), 
 				Updates.pull(TAGS, tagId));
 	}
-	
+
 	private Task createTaskFromMongoDocument(Document document) {
 		return new Task(document.getString(ID), document.getString(DESCRIPTION));
 	}

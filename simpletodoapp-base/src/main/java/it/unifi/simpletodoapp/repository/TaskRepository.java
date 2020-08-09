@@ -7,7 +7,6 @@ import com.mongodb.client.ClientSession;
 import it.unifi.simpletodoapp.model.Task;
 
 public interface TaskRepository {
-
 	public List<Task> findAll(ClientSession clientSession);
 	public Task findById(String taskId, ClientSession clientSession);
 	public void save(Task task, ClientSession clientSession);

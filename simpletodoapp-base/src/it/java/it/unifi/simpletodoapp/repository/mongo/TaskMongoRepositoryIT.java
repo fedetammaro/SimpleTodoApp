@@ -46,8 +46,8 @@ public class TaskMongoRepositoryIT {
 		 * repository and collection; also empties the database before each test */
 		mongoClient = new MongoClient(new ServerAddress(
 				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT))
-				);
+				mongoContainer.getMappedPort(MONGO_PORT)
+				));
 		clientSession = mongoClient.startSession();
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 
