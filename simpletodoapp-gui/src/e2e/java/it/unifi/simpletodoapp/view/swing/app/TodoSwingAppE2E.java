@@ -23,10 +23,10 @@ import org.bson.Document;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MongoDBContainer;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
@@ -48,10 +48,9 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	private static final String TAG_2_ID = "2";
 	private static final String TAG_2_NAME = "Important";
 
-	@SuppressWarnings("rawtypes")
 	@ClassRule
-	public static final GenericContainer mongoContainer =
-	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 
 	private MongoClient mongoClient;
 
@@ -66,9 +65,8 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 		 * relative collections, starts the application and its Swing view and waits
 		 * to find the JFrame of the Swing view, so that tests won't fail because
 		 * they start before the application window has been created and shown */
-		mongoClient = new MongoClient(new ServerAddress(
-				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT)));
+		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
+		mongoClient = MongoClients.create(mongoRsUrl);
 
 		mongoClient.getDatabase(DB_NAME).drop();
 
@@ -91,8 +89,7 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 
 		application("it.unifi.simpletodoapp.TodoApplication")
 		.withArgs(
-				"--mongo-host=" + mongoContainer.getContainerIpAddress(),
-				"--mongo-port=" + mongoContainer.getMappedPort(MONGO_PORT),
+				"--mongo-url=" + mongoRsUrl,
 				"--db-name=" + DB_NAME,
 				"--db-tasksCollection=" + TASKS_COLLECTION,
 				"--db-tagsCollection=" + TAGS_COLLECTION

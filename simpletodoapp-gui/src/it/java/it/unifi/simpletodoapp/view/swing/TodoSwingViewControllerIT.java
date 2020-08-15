@@ -17,11 +17,11 @@ import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MongoDBContainer;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -40,10 +40,9 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	private static final String TASKS_COLLECTION = "tasks";
 	private static final String TAGS_COLLECTION = "tags";
 
-	@SuppressWarnings("rawtypes")
 	@ClassRule
-	public static final GenericContainer mongoContainer =
-	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 
 	private TodoSwingView todoSwingView;
 	private TodoService todoService;
@@ -68,11 +67,10 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		 * repositories and collections and the transaction manager; also empties
 		 * the database before each test and creates the application window on
 		 * which tests will be executed */
-		mongoClient = new MongoClient(new ServerAddress(
-				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT))
-				);
+		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
+		mongoClient = MongoClients.create(mongoRsUrl);
 		clientSession = mongoClient.startSession();
+		
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);

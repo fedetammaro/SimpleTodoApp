@@ -3,8 +3,8 @@ package it.unifi.simpletodoapp;
 import java.awt.EventQueue;
 import java.util.concurrent.Callable;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 
 import it.unifi.simpletodoapp.controller.TodoController;
 import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
@@ -18,11 +18,8 @@ import picocli.CommandLine.Option;
 
 @Command(mixinStandardHelpOptions = true)
 public class TodoApplication implements Callable<Void> {
-	@Option(names = { "--mongo-host" }, description = "MongoDB instance address")
-	private String mongodbHost = "localhost";
-
-	@Option(names = { "--mongo-port" }, description = "MongoDB instance port")
-	private int mongodbPort = 27017;
+	@Option(names = { "--mongo-url" }, description = "MongoDB replica set URL")
+	private String mongoReplicaUrl = "localhost";
 
 	@Option(names = { "--db-name" }, description = "Database name")
 	private String dbName = "todoapp";
@@ -40,8 +37,7 @@ public class TodoApplication implements Callable<Void> {
 	@Override
 	public Void call() throws Exception {
 		EventQueue.invokeLater(() -> {
-			MongoClient mongoClient = 
-					new MongoClient(new ServerAddress(mongodbHost, mongodbPort));
+			MongoClient mongoClient = MongoClients.create(mongoReplicaUrl);
 			TaskMongoRepository taskRepository = 
 					new TaskMongoRepository(mongoClient, dbName, tasksCollection);
 			TagMongoRepository tagRepository =

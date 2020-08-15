@@ -19,13 +19,13 @@
 
 				<!-- Remove the coverage of classes from Sonar -->
 				<sonar.coverage.exclusions>
-					**/model/*.*,
-					**/TransactionManagerMongo.*
+					**/model/*.*
 				</sonar.coverage.exclusions>
 
 				<sonar.issue.ignore.multicriteria>
 					e1,e2,e3
 				</sonar.issue.ignore.multicriteria>
+				
 				<!-- Ignore "Inheritance tree of classes should not be too deep": the 
 					Swing view must extend JFrame (with 4 parents) and implement the view interface -->
 				<sonar.issue.ignore.multicriteria.e1.ruleKey>
@@ -34,6 +34,7 @@
 				<sonar.issue.ignore.multicriteria.e1.resourceKey>
 					**/TodoSwingView.*
 				</sonar.issue.ignore.multicriteria.e1.resourceKey>
+				
 				<!-- Ignore "Tests should include assertions": assertions are made using 
 					AssertJ Swing -->
 				<sonar.issue.ignore.multicriteria.e2.ruleKey>
@@ -42,6 +43,7 @@
 				<sonar.issue.ignore.multicriteria.e2.resourceKey>
 					**/TodoSwingViewTest.*
 				</sonar.issue.ignore.multicriteria.e2.resourceKey>
+				
 				<!-- Ignore "equals(Object obj) and hashCode() should be overridden in 
 					pairs": the view model classes do not need such method, we're only interested 
 					in a trivial equality operator -->

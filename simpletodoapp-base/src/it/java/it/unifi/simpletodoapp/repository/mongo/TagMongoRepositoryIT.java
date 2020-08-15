@@ -14,10 +14,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MongoDBContainer;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -30,10 +30,9 @@ public class TagMongoRepositoryIT {
 	private static final String DB_NAME = "todoapp";
 	private static final String TAGS_COLLECTION = "tags";
 
-	@SuppressWarnings("rawtypes")
 	@ClassRule
-	public static final GenericContainer mongoContainer =
-	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 
 	private MongoClient mongoClient;
 	private ClientSession clientSession;
@@ -44,11 +43,10 @@ public class TagMongoRepositoryIT {
 	public void setup() {
 		/* Creates the mongo client by connecting it to the mongodb instance, the tag
 		 * repository and collection; also empties the database before each test */
-		mongoClient = new MongoClient(new ServerAddress(
-				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT)
-				));
+		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
+		mongoClient = MongoClients.create(mongoRsUrl);
 		clientSession = mongoClient.startSession();
+		
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
