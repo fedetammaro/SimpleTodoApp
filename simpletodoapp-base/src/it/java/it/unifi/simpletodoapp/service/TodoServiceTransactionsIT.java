@@ -11,8 +11,10 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.MongoDBContainer;
 
 import com.mongodb.client.MongoClient;
@@ -21,6 +23,9 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
@@ -46,6 +51,13 @@ public class TodoServiceTransactionsIT {
 	
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
+	
+	@BeforeClass
+	public static void setupMongoLogger() {
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+		rootLogger.setLevel(Level.INFO);
+	}
 	
 	@Before
 	public void setup() {

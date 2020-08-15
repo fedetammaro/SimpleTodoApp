@@ -20,9 +20,12 @@ import org.assertj.swing.fixture.JTabbedPaneFixture;
 import org.assertj.swing.junit.runner.GUITestRunner;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.bson.Document;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.MongoDBContainer;
 
 import com.mongodb.client.MongoClient;
@@ -30,6 +33,9 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
@@ -123,6 +129,19 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
 		mongoClient.close();
+	}
+	
+	@BeforeClass
+	public static void setupMongoLogger() {
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+		rootLogger.setLevel(Level.INFO);
+	}
+	
+	@AfterClass
+	public static void stopContainer() {
+		// Stops the container after all methods have been executed
+		mongoContainer.stop();
 	}
 
 	@Test @GUITest
