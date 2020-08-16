@@ -20,16 +20,22 @@ import org.assertj.swing.fixture.JTabbedPaneFixture;
 import org.assertj.swing.junit.runner.GUITestRunner;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.bson.Document;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.testcontainers.containers.GenericContainer;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.MongoDBContainer;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
@@ -48,10 +54,9 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	private static final String TAG_2_ID = "2";
 	private static final String TAG_2_NAME = "Important";
 
-	@SuppressWarnings("rawtypes")
 	@ClassRule
-	public static final GenericContainer mongoContainer =
-	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 
 	private MongoClient mongoClient;
 
@@ -66,9 +71,8 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 		 * relative collections, starts the application and its Swing view and waits
 		 * to find the JFrame of the Swing view, so that tests won't fail because
 		 * they start before the application window has been created and shown */
-		mongoClient = new MongoClient(new ServerAddress(
-				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT)));
+		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
+		mongoClient = MongoClients.create(mongoRsUrl);
 
 		mongoClient.getDatabase(DB_NAME).drop();
 
@@ -91,8 +95,7 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 
 		application("it.unifi.simpletodoapp.TodoApplication")
 		.withArgs(
-				"--mongo-host=" + mongoContainer.getContainerIpAddress(),
-				"--mongo-port=" + mongoContainer.getMappedPort(MONGO_PORT),
+				"--mongo-url=" + mongoRsUrl,
 				"--db-name=" + DB_NAME,
 				"--db-tasksCollection=" + TASKS_COLLECTION,
 				"--db-tagsCollection=" + TAGS_COLLECTION
@@ -126,6 +129,19 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
 		mongoClient.close();
+	}
+	
+	@BeforeClass
+	public static void setupMongoLogger() {
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+		rootLogger.setLevel(Level.INFO);
+	}
+	
+	@AfterClass
+	public static void stopContainer() {
+		// Stops the container after all methods have been executed
+		mongoContainer.stop();
 	}
 
 	@Test @GUITest

@@ -7,7 +7,7 @@ import java.util.stream.StreamSupport;
 
 import org.bson.Document;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;

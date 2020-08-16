@@ -11,18 +11,22 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.testcontainers.containers.GenericContainer;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.MongoDBContainer;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
@@ -32,52 +36,54 @@ public class TransactionManagerMongoIT {
 	private static final String TASKS_COLLECTION = "tasks";
 	private static final String TAGS_COLLECTION = "tags";
 
-	@SuppressWarnings("rawtypes")
 	@ClassRule
-	public static final GenericContainer mongoContainer =
-	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 
 	private TransactionManagerMongo transactionManagerMongo;
 
 	private MongoClient mongoClient;
-	private ClientSession clientSession;
+	private MongoDatabase mongoDatabase;
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
+	
+	@BeforeClass
+	public static void setupMongoLogger() {
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+		rootLogger.setLevel(Level.INFO);
+	}
 
 	@Before
 	public void setup() {
 		/* Creates the mongo client by connecting it to the mongodb instance, both
 		 * repositories and collections and the transaction manager; also empties
 		 * the database before each test */
-		mongoClient = new MongoClient(new ServerAddress(
-				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT))
-				);
-		clientSession = mongoClient.startSession();
+		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
+		mongoClient = MongoClients.create(mongoRsUrl);
+
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
 
-		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
+		mongoDatabase = mongoClient.getDatabase(DB_NAME);
 
-		database.drop();
-		database.createCollection(TASKS_COLLECTION);
-		database.createCollection(TAGS_COLLECTION);
-		taskCollection = database.getCollection(TASKS_COLLECTION);
-		tagCollection = database.getCollection(TAGS_COLLECTION);
+		mongoDatabase.drop();
+		mongoDatabase.createCollection(TASKS_COLLECTION);
+		mongoDatabase.createCollection(TAGS_COLLECTION);
+		taskCollection = mongoDatabase.getCollection(TASKS_COLLECTION);
+		tagCollection = mongoDatabase.getCollection(TAGS_COLLECTION);
 	}
-
+	
 	@After
 	public void tearDown() {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
-		clientSession.close();
 		mongoClient.close();
 	}
-
 
 	@AfterClass
 	public static void stopContainer() {
@@ -105,7 +111,7 @@ public class TransactionManagerMongoIT {
 	@Test
 	public void testTaskTransactionAborted() {
 		// Setup phase
-		mongoClient.getDatabase(DB_NAME).drop();
+		mongoDatabase.drop();
 		Task task = new Task("1", "Start using TDD");
 
 		// Exercise and verify phases
@@ -139,7 +145,7 @@ public class TransactionManagerMongoIT {
 	@Test
 	public void testTagTransactionAborted() {
 		// Setup phase
-		mongoClient.getDatabase(DB_NAME).drop();
+		mongoDatabase.drop();
 		Tag tag = new Tag("1", "Work");
 
 		// Exercise and verify phases
@@ -180,7 +186,7 @@ public class TransactionManagerMongoIT {
 	@Test
 	public void testCompositeTransactionAborted() {
 		// Setup phase
-		mongoClient.getDatabase(DB_NAME).drop();
+		mongoDatabase.drop();
 		Task task = new Task("1", "Start using TDD");
 		Tag tag = new Tag("1", "Work");
 

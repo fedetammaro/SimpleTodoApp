@@ -12,18 +12,23 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.testcontainers.containers.GenericContainer;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.MongoDBContainer;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
@@ -38,10 +43,9 @@ public class TodoControllerServiceIT {
 	private static final String TASKS_COLLECTION = "tasks";
 	private static final String TAGS_COLLECTION = "tags";
 
-	@SuppressWarnings("rawtypes")
 	@ClassRule
-	public static final GenericContainer mongoContainer =
-	new GenericContainer("krnbr/mongo").withExposedPorts(MONGO_PORT);
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 
 	private TransactionManagerMongo transactionManagerMongo;
 	private TodoService todoService;
@@ -55,6 +59,13 @@ public class TodoControllerServiceIT {
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
+	
+	@BeforeClass
+	public static void setupMongoLogger() {
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+		rootLogger.setLevel(Level.INFO);
+	}
 
 	@Before
 	public void setup() {
@@ -63,10 +74,9 @@ public class TodoControllerServiceIT {
 		 * test */
 		MockitoAnnotations.initMocks(this);
 
-		mongoClient = new MongoClient(new ServerAddress(
-				mongoContainer.getContainerIpAddress(),
-				mongoContainer.getMappedPort(MONGO_PORT))
-				);
+		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
+		mongoClient = MongoClients.create(mongoRsUrl);
+		
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 

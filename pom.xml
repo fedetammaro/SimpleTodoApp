@@ -81,10 +81,10 @@
 				<version>${assertj-swing.version}</version>
 				<scope>test</scope>
 			</dependency>
-			<!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
+			<!-- https://mvnrepository.com/artifact/org.testcontainers/mongodb -->
 			<dependency>
 				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers</artifactId>
+				<artifactId>mongodb</artifactId>
 				<version>${testcontainers.version}</version>
 				<scope>test</scope>
 			</dependency>
@@ -105,42 +105,40 @@
 	</dependencyManagement>
 
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.pitest</groupId>
-				<artifactId>pitest-maven</artifactId>
-				<version>${pitest.version}</version>
-				<configuration>
-					<excludedClasses>
-						<param>*Test</param>
-						<param>*IT</param>
-						<param>it.unifi.simpletodoapp.TodoApplication</param>
-						<param>it.unifi.simpletodoapp.model.*</param>
-						<param>it.unifi.simpletodoapp.view.*</param>
-						<!-- Removed since there are no unit tests for this class (only IT 
-							are possible) -->
-						<param>it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo</param>
-					</excludedClasses>
-					<targetModules>
-						<param>simpletodoapp-base</param>
-						<param>simpletodoapp-gui</param>
-					</targetModules>
-					<targetTests>
-						<param>it.unifi.simpletodoapp.*Test</param>
-					</targetTests>
-					<excludedTestClasses>
-						<!-- Excluding UI tests since it can't use xvfb and always fails -->
-						<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
-					</excludedTestClasses>
-					<mutators>
-						<mutator>STRONGER</mutator>
-					</mutators>
-					<mutationThreshold>100</mutationThreshold>
-				</configuration>
-			</plugin>
-		</plugins>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.pitest</groupId>
+					<artifactId>pitest-maven</artifactId>
+					<version>${pitest.version}</version>
+					<configuration>
+						<excludedClasses>
+							<param>*Test</param>
+							<param>*IT</param>
+							<param>it.unifi.simpletodoapp.TodoApplication</param>
+							<param>it.unifi.simpletodoapp.model.*</param>
+							<param>it.unifi.simpletodoapp.view.*</param>
+							<!-- Removed since there are no unit tests for this class (only IT 
+								are possible) -->
+							<param>it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo</param>
+						</excludedClasses>
+						<targetModules>
+							<param>simpletodoapp-base</param>
+							<param>simpletodoapp-gui</param>
+						</targetModules>
+						<targetTests>
+							<param>it.unifi.simpletodoapp.*Test</param>
+						</targetTests>
+						<excludedTestClasses>
+							<!-- Excluding UI tests since it can't use xvfb and always fails -->
+							<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
+						</excludedTestClasses>
+						<mutators>
+							<mutator>STRONGER</mutator>
+						</mutators>
+						<mutationThreshold>100</mutationThreshold>
+					</configuration>
+				</plugin>
 				<plugin>
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
