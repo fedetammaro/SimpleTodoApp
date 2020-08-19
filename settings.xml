@@ -11,9 +11,9 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<sonar.projectKey>Sfullez_SimpleTodoApp</sonar.projectKey>
-				<sonar.organization>sfullez</sonar.organization>
-				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+				<sonar.projectKey>${env.SONAR_PROJECT}</sonar.projectKey>
+				<sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
+				<sonar.host.url>${env.SONAR_URL}</sonar.host.url>
 				<sonar.login>${env.SONAR_TOKEN}</sonar.login>
 				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
 
