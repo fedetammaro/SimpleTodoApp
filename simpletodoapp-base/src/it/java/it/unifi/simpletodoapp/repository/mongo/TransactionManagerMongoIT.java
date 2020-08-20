@@ -109,7 +109,7 @@ public class TransactionManagerMongoIT {
 	}
 
 	@Test
-	public void testTaskTransactionAborted() {
+	public void testTaskTransactionAbortedThrowsMongoException() {
 		// Setup phase
 		mongoDatabase.drop();
 		Task task = new Task("1", "Start using TDD");
@@ -143,7 +143,7 @@ public class TransactionManagerMongoIT {
 	}
 
 	@Test
-	public void testTagTransactionAborted() {
+	public void testTagTransactionAbortedThrowsMongoException() {
 		// Setup phase
 		mongoDatabase.drop();
 		Tag tag = new Tag("1", "Work");
@@ -184,7 +184,7 @@ public class TransactionManagerMongoIT {
 	}
 
 	@Test
-	public void testCompositeTransactionAborted() {
+	public void testCompositeTransactionAbortedThrowsMongoException() {
 		// Setup phase
 		mongoDatabase.drop();
 		Task task = new Task("1", "Start using TDD");

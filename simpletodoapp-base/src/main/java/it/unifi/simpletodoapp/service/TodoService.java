@@ -34,6 +34,7 @@ public class TodoService {
 	}
 
 	public void deleteTask(Task task) {
+		// Delete the task and remove it from all the tags it was associated to
 		transactionManager.doCompositeTransaction(
 				(taskRepository, tagRepository, clientSession) -> {
 					taskRepository.getTagsByTaskId(task.getId(), clientSession)
@@ -66,6 +67,7 @@ public class TodoService {
 	}
 
 	public void deleteTag(Tag tag) {
+		// Delete the tag and remove it from all the tasks it was associated to
 		transactionManager.doCompositeTransaction(
 				(taskRepository, tagRepository, clientSession) -> {
 					tagRepository.getTasksByTagId(tag.getId(), clientSession)

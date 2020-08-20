@@ -45,10 +45,6 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	private static final String TASKS_COLLECTION = "tasks";
 	private static final String TAGS_COLLECTION = "tags";
 
-	@ClassRule
-	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
-	.withExposedPorts(MONGO_PORT);
-
 	private TodoSwingView todoSwingView;
 	private TodoService todoService;
 	private TodoController todoController;
@@ -66,6 +62,10 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
 
+	@ClassRule
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
+	
 	@Override
 	public void onSetUp() {
 		/* Creates the mongo client by connecting it to the mongodb instance, both
