@@ -37,10 +37,6 @@ public class TodoServiceTransactionsIT {
 	private static final String DB_NAME = "todoapp";
 	private static final String TASKS_COLLECTION = "tasks";
 	private static final String TAGS_COLLECTION = "tags";
-
-	@ClassRule
-	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
-	.withExposedPorts(MONGO_PORT);
 	
 	private TodoService todoService;
 	private TransactionManagerMongo transactionManagerMongo;
@@ -48,9 +44,12 @@ public class TodoServiceTransactionsIT {
 	private TagMongoRepository tagMongoRepository;
 	
 	private MongoClient mongoClient;
-	
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
+	
+	@ClassRule
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 	
 	@BeforeClass
 	public static void setupMongoLogger() {

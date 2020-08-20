@@ -43,10 +43,6 @@ public class TodoControllerServiceIT {
 	private static final String TASKS_COLLECTION = "tasks";
 	private static final String TAGS_COLLECTION = "tags";
 
-	@ClassRule
-	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
-	.withExposedPorts(MONGO_PORT);
-
 	private TransactionManagerMongo transactionManagerMongo;
 	private TodoService todoService;
 	private TodoController todoController;
@@ -59,6 +55,10 @@ public class TodoControllerServiceIT {
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
+	
+	@ClassRule
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 	
 	@BeforeClass
 	public static void setupMongoLogger() {

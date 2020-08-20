@@ -26,13 +26,16 @@ public class TransactionManagerMongo implements TransactionManager {
 	public <T> T doTaskTransaction(TaskTransactionCode<T> code) {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
-
+		
+		/* TransactionBody that simply applies the TaskTransactionCode with the
+		 * given TaskMongoRepository and ClientSession */
 		TransactionBody<T> transactionBody = 
 				() -> code.apply(taskMongoRepository, clientSession);
 
 		try {
+			// Execute the transaction within the ClientSession
 			value = clientSession.withTransaction(transactionBody);
-		} catch(Exception e) {
+		} catch(RuntimeException e) {
 			throw new MongoException("Task transaction failed, aborting");
 		} finally {
 			clientSession.close();
@@ -45,13 +48,16 @@ public class TransactionManagerMongo implements TransactionManager {
 	public <T> T doTagTransaction(TagTransactionCode<T> code) {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
-
+		
+		/* TransactionBody that simply applies the TagTransactionCode with the
+		 * given TagMongoRepository and ClientSession */
 		TransactionBody<T> transactionBody =
 				() -> code.apply(tagMongoRepository, clientSession);
 
 		try {
+			// Execute the transaction within the ClientSession
 			value = clientSession.withTransaction(transactionBody);
-		} catch(Exception e) {
+		} catch(RuntimeException e) {
 			throw new MongoException("Tag transaction failed, aborting");
 		} finally {
 			clientSession.close();
@@ -64,13 +70,16 @@ public class TransactionManagerMongo implements TransactionManager {
 	public <T> T doCompositeTransaction(CompositeTransactionCode<T> code) {
 		ClientSession clientSession = mongoClient.startSession();
 		T value = null;
-
+		
+		/* TransactionBody that simply applies the CompositeTransactionCode with the
+		 * given TaskMongoRepository, TagMongoRepository and ClientSession */
 		TransactionBody<T> transactionBody =
 				() -> code.apply(taskMongoRepository, tagMongoRepository, clientSession);
 
 		try {
+			// Execute the transaction within the ClientSession
 			value = clientSession.withTransaction(transactionBody);
-		} catch(Exception e) {
+		} catch(RuntimeException e) {
 			throw new MongoException("Composite transaction failed, aborting");
 		} finally {
 			clientSession.close();

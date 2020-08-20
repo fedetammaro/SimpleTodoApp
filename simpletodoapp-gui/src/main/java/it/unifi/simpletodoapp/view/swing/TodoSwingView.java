@@ -111,7 +111,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 	}
 
 	static final class TagComboModel extends DefaultComboBoxModel<TagViewModel> {
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = -9089534051472309798L;
 
 		public void addTag(Tag tag) {
 			addElement(new TagViewModel(tag));
@@ -123,7 +123,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 	}
 
 	static final class TagListModel extends DefaultListModel<TagViewModel> {
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = -4728030913042234899L;
 
 		public void addTag(Tag tag) {
 			addElement(new TagViewModel(tag));

@@ -54,15 +54,15 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	private static final String TAG_2_ID = "2";
 	private static final String TAG_2_NAME = "Important";
 
-	@ClassRule
-	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
-	.withExposedPorts(MONGO_PORT);
-
 	private MongoClient mongoClient;
 
 	private FrameFixture frameFixture;
 	private JPanelFixture contentPanel;
 	private JTabbedPaneFixture tabPanel;
+	
+	@ClassRule
+	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
+	.withExposedPorts(MONGO_PORT);
 
 	@Override
 	protected void onSetUp() {
