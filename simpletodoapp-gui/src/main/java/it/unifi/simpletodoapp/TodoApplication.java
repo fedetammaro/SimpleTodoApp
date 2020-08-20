@@ -19,7 +19,7 @@ import picocli.CommandLine.Option;
 @Command(mixinStandardHelpOptions = true)
 public class TodoApplication implements Callable<Void> {
 	@Option(names = { "--mongo-url" }, description = "MongoDB replica set URL")
-	private String mongoReplicaUrl = "mongodb://localhost/27017";
+	private String mongoReplicaUrl = "mongodb://localhost:27017";
 
 	@Option(names = { "--db-name" }, description = "Database name")
 	private String dbName = "todoapp";
