@@ -53,6 +53,27 @@
 				<sonar.issue.ignore.multicriteria.e3.resourceKey>
 					**/TodoSwingView.*
 				</sonar.issue.ignore.multicriteria.e3.resourceKey>
+				
+				<!-- Ignore "Change this condition so that it does not always
+				evaluate to "true": The condition does not always evaluate to true,
+				since first() can return null if there are no items in the iterator -->
+				<sonar.issue.ignore.multicriteria.e4.ruleKey>
+					java:S2583
+				</sonar.issue.ignore.multicriteria.e4.ruleKey>
+				<sonar.issue.ignore.multicriteria.e4.resourceKey>
+					**/TagMongoRepository.*,
+					**/TaskMongoRepository.*
+				</sonar.issue.ignore.multicriteria.e4.resourceKey>
+				
+				<!-- Ignore "Add a type test to this method.": the equals() method is used
+				only indirectly by the removeElement method of both classes, so the type
+				will always be the correct one -->
+				<sonar.issue.ignore.multicriteria.e5.ruleKey>
+					java:S2097
+				</sonar.issue.ignore.multicriteria.e5.ruleKey>
+				<sonar.issue.ignore.multicriteria.e5.resourceKey>
+					**/TodoSwingView.*
+				</sonar.issue.ignore.multicriteria.e5.resourceKey>
 			</properties>
 		</profile>
 	</profiles>
