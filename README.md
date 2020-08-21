@@ -9,17 +9,26 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Sfullez_SimpleTodoApp&metric=code_smells)](https://sonarcloud.io/dashboard?id=Sfullez_SimpleTodoApp)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=Sfullez_SimpleTodoApp&metric=duplicated_lines_density)](https://sonarcloud.io/dashboard?id=Sfullez_SimpleTodoApp)
 
-Simple Todo Application developed using TDD and the tools/techniques seen at the Advanced Techniques and Tools for Software Development course at Università degli Studi di Firenze, using Maven and GitHub Actions.
+Simple Todo Application developed using TDD and the tools/techniques seen at the Advanced Techniques and Tools for Software Development course at Università degli Studi di Firenze, using Maven and GitHub Workflows.
 
 ## Prerequisites
 - Java 8
 - Maven
-- A GitHub repository for Continuous Integration (if you want to execute remotely tests, code coverage with Coveralls and code quality analysis with SonarCloud)
 - Docker (for the MongoDB container if you want to run the application as standalone)
 
-### How to setup a MongoDB docker container with a replica set
-Since a MongoDB database with transactions support is required to try the application, here are the steps to setup a working MongoDB instance with its replica set, implying a Docker installation is already present:
+A GitHub repository is also required for Continuous Integration on GitHub Workflows, if you want to execute remotely tests, code coverage with Coveralls and code quality analysis with SonarCloud; otherwise, all tests, mutation testing and JaCoCo code coverage can also be executed locally during the Maven build. To execute code quality analysis locally, a [SonarQube](https://www.sonarqube.org/downloads/) installation is required and the plugin must be configured accordingly (more details on the [official documentation](https://docs.sonarqube.org/latest/)).
 
+### How to setup a MongoDB docker container with a replica set
+Since a MongoDB database with transactions support is required to try the application, here are two different ways to setup a working MongoDB instance with its replica set, implying a Docker installation is already present.
+
+#### Using a third-party Mongo docker image
+1. `docker pull krnbr/mongo` to download the latest MongoDB custom docker image; this image has a pre-configured built-in replica set on a single node, acceptable for testing purposes but highly not recommended for production purposes because of its instability at runtime
+2. `docker run -p 27017:27017 --name mongo krnbr/mongo` to create a MongoDB docker container using this custom docker image (no additional configuration required)
+
+The replica set has been initialized and the application can be started, passing `mongodb://localhost:27017` as replica set URL to the application.
+
+#### Using the official Mongo docker image
+In this case, the configuration is slightly more complex since we have to create a more production-friendly setup with at least two nodes, one with a primary role and one with a secondary role that replicates all the content of the primary node.
  1. `docker pull mongo` to download the latest MongoDB docker image
  2. `docker network create mongo-network` to create a Docker network named "mongo-network" for MongoDB instances to communicate
  3. `docker run -p 27017:27017 --name mongo-primary --net mongo-network mongo mongod --replSet todoapp-replica-set` to create a MongoDB docker container on the created network; finally, it invokes the Mongo daemon to add the instance to a replica set called "todoapp-replica-set"
@@ -50,7 +59,7 @@ Once the application has been packaged with `mvn clean package`, the .jar contan
 | `--db-tagsCollection` | Name of the tags collection in the database, by default `tags` |
 
 ## Continuous integration
-The .yml workflow file to perform continuous integration on the project with GitHub actions is provided in the repository; if you want to also check the Coveralls and Sonarcloud status, some environment variables need to be modified inside the .yml workflow file:
+The .yml workflow file to perform continuous integration on the project with GitHub Workflows is provided in the repository; if you want to also check the Coveralls and Sonarcloud status, some environment variables need to be modified inside the .yml workflow file:
 
  - `SONAR_PROJECT`: given by Sonarcloud during the initialization phase
  - `SONAR_ORGANIZATION`: given by Sonarcloud during the initialization phase
