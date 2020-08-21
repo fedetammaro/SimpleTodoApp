@@ -21,18 +21,12 @@ A GitHub repository is also required for Continuous Integration on GitHub Workfl
 ### How to setup a MongoDB docker container with a replica set
 Since a MongoDB database with transactions support is required to try the application, here are two different ways to setup a working MongoDB instance with its replica set, implying a Docker installation is already present.
 
-#### Using a third-party Mongo docker image
-1. `docker pull krnbr/mongo` to download the latest MongoDB custom docker image; this image has a pre-configured built-in replica set on a single node, acceptable for testing purposes but highly not recommended for production purposes because of its instability at runtime
-2. `docker run -p 27017:27017 --name mongo krnbr/mongo` to create a MongoDB docker container using this custom docker image (no additional configuration required)
-
-The replica set has been initialized and the application can be started, passing `mongodb://localhost:27017` as replica set URL to the application.
-
 #### Using the official Mongo docker image
 In this case, the configuration is slightly more complex since we have to create a more production-friendly setup with at least two nodes, one with a primary role and one with a secondary role that replicates all the content of the primary node.
- 1. `docker pull mongo` to download the latest MongoDB docker image
+ 1. `docker pull mongo:latest` to download the latest MongoDB docker image
  2. `docker network create mongo-network` to create a Docker network named "mongo-network" for MongoDB instances to communicate
- 3. `docker run -p 27017:27017 --name mongo-primary --net mongo-network mongo mongod --replSet todoapp-replica-set` to create a MongoDB docker container on the created network; finally, it invokes the Mongo daemon to add the instance to a replica set called "todoapp-replica-set"
- 4. `docker run -p 27018:27017 --name mongo-secondary --net mongo-network mongo mongod --replSet todoapp-replica-set` to create another MongoDB docker container for the secondary instance for the replica set
+ 3. `docker run -p 27017:27017 --name mongo-primary --net mongo-network mongo:latest mongod --replSet todoapp-replica-set` to create a MongoDB docker container on the created network; finally, it invokes the Mongo daemon to add the instance to a replica set called "todoapp-replica-set"
+ 4. `docker run -p 27018:27017 --name mongo-secondary --net mongo-network mongo:latest mongod --replSet todoapp-replica-set` to create another MongoDB docker container for the secondary instance for the replica set
 
 Then, we have to setup the replica set so that the two instances act as primary and secondary nodes. To do this, we connect to the Mongo shell of the primary node with `docker exec -it mongo-primary mongo` and we create the following configuration:
 
@@ -41,6 +35,17 @@ Then, we have to setup the replica set so that the two instances act as primary 
  3. `rs.initiate(configuration)` to initiate the replica set with the given configuration
 
 Now the replica set has been initialized and configured and the application can be started. The replica set URl to pass to the application will be `mongodb://localhost:27017`.
+
+#### Using a third-party Mongo docker image (not recommended)
+1. `docker pull krnbr/mongo:latest` to download the latest MongoDB custom docker image; this image has a pre-configured built-in replica set on a single node, acceptable for testing purposes but highly not recommended for production purposes because of its instability at runtime
+2. `docker run -p 27017:27017 --name mongo krnbr/mongo:latest` to create a MongoDB docker container using this custom docker image (no additional configuration required)
+
+Since this image uses a version of MongoDB < 4.2, it does not support the creation of collections during transactions, so there are some additional steps:
+1. `docker exec -it mongo mongo` to connect to the Mongo shell of the database
+2. `db = (new Mongo('localhost:27017')).getDB('todoapp')` to create the database that will be used by the application
+3. `db.createCollection('tasks')` and `db.createCollection('tags')` to create both collections of the database
+
+The single-node replica set has been initialized and the application can be started, passing `mongodb://localhost:27017` as replica set URL to the application.
 
 ## Build with Maven
 - `mvn clean verify` to simply run all tests
