@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  mongo-primary:
+    image: mongo:latest
+    container_name: "mongo-primary"
+    environment:
+      - MONGO_INITDB_DATABASE=todoapp
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo-net
+    command: mongod --replSet todoapp-replica-set
+
+  mongo-secondary:
+    image: mongo:latest
+    container_name: "mongo-secondary"
+    depends_on:
+      - mongo-primary
+    networks:
+      - mongo-net
+    volumes:
+      - ./init.js:/docker-entrypoint-initdb.d/init.js:ro
+    command: mongod --replSet todoapp-replica-set
+
+networks:
+  mongo-net:
+    driver: bridge
