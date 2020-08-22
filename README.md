@@ -21,12 +21,12 @@ Simple Todo Application developed using TDD and the tools/techniques seen at the
 A GitHub repository is also required for Continuous Integration on GitHub Workflows, if you want to execute remotely tests, code coverage with Coveralls and code quality analysis with SonarCloud; otherwise, all tests, mutation testing and JaCoCo code coverage can also be executed locally during the Maven build. To execute code quality analysis locally, a [SonarQube](https://www.sonarqube.org/downloads/) installation is required and the plugin must be configured accordingly (more details on the [official documentation](https://docs.sonarqube.org/latest/)).
 
 ### How to setup a MongoDB docker container with a replica set
-Since a MongoDB database with transactions support is required to try the application, here are the steps needed to setup a working MongoDB instance with its replica set, implying a Docker and Docker Compose are already installed.
+Since a MongoDB database with transactions support is required to try the application, here are the steps needed to setup a working MongoDB instance with its replica set, implying Docker and Docker Compose are already installed.
 
  1. `docker pull mongo:latest` to download the latest MongoDB docker image
  2. `docker-compose up` to create the MongoDB docker container instances, place them on the same Docker network and configure the replica set with a Javascript configuration script (init.js), launched right after the initialization of the secondary node (more details in the project report)
 
-Now the replica set has been initialized and configured and the application can be started. The replica set URl to pass to the application will be `mongodb://localhost:27017`, since the primary node.
+Now the replica set has been initialized and configured and the application can be started. The replica set URl to pass to the application will be `mongodb://mongo-primary:27017`.
 
 ## Build with Maven
 - `mvn clean verify` to simply run all tests
