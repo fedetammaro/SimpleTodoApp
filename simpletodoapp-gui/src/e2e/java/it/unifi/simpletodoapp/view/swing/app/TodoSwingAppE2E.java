@@ -1,8 +1,8 @@
 package it.unifi.simpletodoapp.view.swing.app;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.swing.launcher.ApplicationLauncher.*;
-import static org.awaitility.Awaitility.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.swing.launcher.ApplicationLauncher.application;
+import static org.awaitility.Awaitility.await;
 
 import java.util.Arrays;
 import java.util.List;

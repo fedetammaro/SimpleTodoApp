@@ -1,8 +1,8 @@
 package it.unifi.simpletodoapp.repository.mongo;
 
-import com.mongodb.client.MongoClient;
 import com.mongodb.MongoException;
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.TransactionBody;
 
 import it.unifi.simpletodoapp.repository.CompositeTransactionCode;

@@ -1,6 +1,6 @@
 package it.unifi.simpletodoapp.service;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.List;
