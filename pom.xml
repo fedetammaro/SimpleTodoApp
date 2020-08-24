@@ -37,49 +37,53 @@
 		<module>simpletodoapp-gui</module>
 	</modules>
 
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/junit/junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>${mongodriver.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.assertj/assertj-swing-junit -->
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-swing-junit</artifactId>
+			<version>${assertj-swing.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.testcontainers/mongodb -->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mongodb</artifactId>
+			<version>${testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
 	<dependencyManagement>
 		<dependencies>
-			<!-- https://mvnrepository.com/artifact/junit/junit -->
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-core</artifactId>
-				<version>${mockito.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
-			<dependency>
-				<groupId>org.mongodb</groupId>
-				<artifactId>mongo-java-driver</artifactId>
-				<version>${mongodriver.version}</version>
-			</dependency>
-			<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-classic</artifactId>
-				<version>${logback.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<!-- https://mvnrepository.com/artifact/org.assertj/assertj-swing-junit -->
-			<dependency>
-				<groupId>org.assertj</groupId>
-				<artifactId>assertj-swing-junit</artifactId>
-				<version>${assertj-swing.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<!-- https://mvnrepository.com/artifact/org.testcontainers/mongodb -->
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>mongodb</artifactId>
-				<version>${testcontainers.version}</version>
-				<scope>test</scope>
-			</dependency>
+
 			<!-- https://mvnrepository.com/artifact/info.picocli/picocli -->
 			<dependency>
 				<groupId>info.picocli</groupId>
@@ -97,101 +101,99 @@
 	</dependencyManagement>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.pitest</groupId>
-					<artifactId>pitest-maven</artifactId>
-					<version>${pitest.version}</version>
-					<configuration>
-						<excludedClasses>
-							<param>*Test</param>
-							<param>*IT</param>
-							<param>it.unifi.simpletodoapp.TodoApplication</param>
-							<param>it.unifi.simpletodoapp.model.*</param>
-							<param>it.unifi.simpletodoapp.view.*</param>
-							<!-- Removed since there are no unit tests for this class (only IT 
-								are possible) -->
-							<param>it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo</param>
-						</excludedClasses>
-						<targetModules>
-							<param>simpletodoapp-base</param>
-							<param>simpletodoapp-gui</param>
-						</targetModules>
-						<targetTests>
-							<param>it.unifi.simpletodoapp.*Test</param>
-						</targetTests>
-						<excludedTestClasses>
-							<!-- Excluding UI tests since it can't use xvfb and always fails -->
-							<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
-						</excludedTestClasses>
-						<mutators>
-							<mutator>STRONGER</mutator>
-						</mutators>
-						<mutationThreshold>100</mutationThreshold>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.sonarsource.scanner.maven</groupId>
-					<artifactId>sonar-maven-plugin</artifactId>
-					<version>${sonar.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.eluder.coveralls</groupId>
-					<artifactId>coveralls-maven-plugin</artifactId>
-					<version>${coveralls.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>build-helper-maven-plugin</artifactId>
-					<version>${buildhelper.version}</version>
-					<executions>
-						<execution>
-							<id>add-test-source</id>
-							<phase>generate-test-sources</phase>
-							<goals>
-								<goal>add-test-source</goal>
-							</goals>
-							<configuration>
-								<sources>
-									<source>src/it/java</source>
-									<source>src/e2e/java</source>
-								</sources>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-failsafe-plugin</artifactId>
-					<version>${failsafe.version}</version>
-					<executions>
-						<execution>
-							<id>integration-tests</id>
-							<goals>
-								<goal>integration-test</goal>
-								<goal>verify</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>e2e-tests</id>
-							<goals>
-								<goal>integration-test</goal>
-								<goal>verify</goal>
-							</goals>
-							<configuration>
-								<includes>
-									<include>**/*E2E.java</include>
-								</includes>
-								<excludes>
-									<exclude>**/*IT.java</exclude>
-								</excludes>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-			</plugins>
-		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.pitest</groupId>
+				<artifactId>pitest-maven</artifactId>
+				<version>${pitest.version}</version>
+				<configuration>
+					<excludedClasses>
+						<param>*Test</param>
+						<param>*IT</param>
+						<param>it.unifi.simpletodoapp.TodoApplication</param>
+						<param>it.unifi.simpletodoapp.model.*</param>
+						<param>it.unifi.simpletodoapp.view.*</param>
+						<!-- Removed since there are no unit tests for this class (only IT 
+							are possible) -->
+						<param>it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo</param>
+					</excludedClasses>
+					<targetModules>
+						<param>simpletodoapp-base</param>
+						<param>simpletodoapp-gui</param>
+					</targetModules>
+					<targetTests>
+						<param>it.unifi.simpletodoapp.*Test</param>
+					</targetTests>
+					<excludedTestClasses>
+						<!-- Excluding UI tests since it can't use xvfb and always fails -->
+						<param>it.unifi.simpletodoapp.view.swing.TodoSwingViewTest</param>
+					</excludedTestClasses>
+					<mutators>
+						<mutator>STRONGER</mutator>
+					</mutators>
+					<mutationThreshold>100</mutationThreshold>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>${sonar.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.eluder.coveralls</groupId>
+				<artifactId>coveralls-maven-plugin</artifactId>
+				<version>${coveralls.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>${buildhelper.version}</version>
+				<executions>
+					<execution>
+						<id>add-test-source</id>
+						<phase>generate-test-sources</phase>
+						<goals>
+							<goal>add-test-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/it/java</source>
+								<source>src/e2e/java</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>${failsafe.version}</version>
+				<executions>
+					<execution>
+						<id>integration-tests</id>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>e2e-tests</id>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>**/*E2E.java</include>
+							</includes>
+							<excludes>
+								<exclude>**/*IT.java</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
 
 	<profiles>
