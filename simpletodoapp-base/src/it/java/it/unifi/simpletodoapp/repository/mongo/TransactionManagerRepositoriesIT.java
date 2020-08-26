@@ -30,7 +30,7 @@ import ch.qos.logback.classic.LoggerContext;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 
-public class TransactionManagerMongoIT {
+public class TransactionManagerRepositoriesIT {
 	private static final int MONGO_PORT = 27017;
 	private static final String DB_NAME = "todoapp";
 	private static final String TASKS_COLLECTION = "tasks";
