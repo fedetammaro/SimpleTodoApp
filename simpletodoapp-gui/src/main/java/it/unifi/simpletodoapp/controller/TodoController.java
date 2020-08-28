@@ -27,7 +27,7 @@ public class TodoController {
 		try {
 			todoService.saveTask(task);
 			todoView.taskAdded(task);
-		} catch(TaskRepositoryException exception) {
+		} catch (TaskRepositoryException exception) {
 			todoView.taskError(exception.getMessage());
 		}
 	}
@@ -49,7 +49,7 @@ public class TodoController {
 		try {
 			todoService.saveTag(tag);
 			todoView.tagAdded(tag);
-		} catch(TagRepositoryException exception) {
+		} catch (TagRepositoryException exception) {
 			todoView.tagError(exception.getMessage());
 		}
 
@@ -59,95 +59,60 @@ public class TodoController {
 		try {
 			todoService.deleteTag(tag);
 			todoView.tagDeleted(tag);
-		} catch(TagRepositoryException exception) {
+		} catch (TagRepositoryException exception) {
 			todoView.tagError(exception.getMessage());
 		}
 	}
 
 	public void addTagToTask(Task task, Tag tag) {
-		if (todoService.findTaskById(task.getId()) == null) {
-			todoView.taskError(noTaskErrorMessage(task));
-			return;
-		}
-
-		if (todoService.findTagById(tag.getId()) == null) {
-			todoView.taskError(noTagErrorMessage(tag));
-			return;
-		}
-
-		List<String> currentTags = todoService.findTagsByTaskId(task.getId());
-
-		if (currentTags.stream().anyMatch(t -> t.equals(tag.getId()))) {
-			todoView.taskError("Tag with ID " + tag.getId() + 
-					" is already assigned to task with ID " + task.getId());
-		} else {
+		try {
 			todoService.addTagToTask(task.getId(), tag.getId());
 			todoView.tagAddedToTask(tag);
+		} catch (TaskRepositoryException exception) {
+			todoView.taskError(exception.getMessage());
+		} catch (TagRepositoryException exception) {
+			todoView.tagError(exception.getMessage());
 		}
 	}
 
 	public void removeTagFromTask(Task task, Tag tag) {
-		if (todoService.findTaskById(task.getId()) == null) {
-			todoView.taskError(noTaskErrorMessage(task));
-			return;
-		}
-
-		if (todoService.findTagById(tag.getId()) == null) {
-			todoView.taskError(noTagErrorMessage(tag));
-			return;
-		}
-
-		List<String> currentTags = todoService.findTagsByTaskId(task.getId());
-
-		if (currentTags.stream().anyMatch(t -> t.equals(tag.getId()))) {
+		try {
 			todoService.removeTagFromTask(task.getId(), tag.getId());
 			todoView.tagRemovedFromTask(tag);
-		} else {
-			todoView.taskError("No tag with ID " + tag.getId() + 
-					" assigned to task with ID " + task.getId());
+		} catch (TaskRepositoryException exception) {
+			todoView.taskError(exception.getMessage());
+		} catch (TagRepositoryException exception) {
+			todoView.tagError(exception.getMessage());
 		}
 	}
 
 	public void removeTaskFromTag(Tag tag, Task task) {
-		if (todoService.findTaskById(task.getId()) == null) {
-			todoView.tagError(noTaskErrorMessage(task));
-			return;
-		}
-
-		if (todoService.findTagById(tag.getId()) == null) {
-			todoView.tagError(noTagErrorMessage(tag));
-			return;
-		}
-
-		List<String> currentTasks = todoService.findTasksByTagId(tag.getId());
-
-		if (currentTasks.stream().anyMatch(t -> t.equals(task.getId()))) {
-			todoService.removeTagFromTask(task.getId(), tag.getId());
+		try {
+			todoService.removeTaskFromTag(task.getId(), tag.getId());
 			todoView.taskRemovedFromTag(task);
-		} else {
-			todoView.tagError("No task with ID " + task.getId() +
-					" assigned to tag with ID " + tag.getId());
+		} catch (TaskRepositoryException exception) {
+			todoView.taskError(exception.getMessage());
+		} catch (TagRepositoryException exception) {
+			todoView.tagError(exception.getMessage());
 		}
 	}
 
 	public void getTagsByTask(Task task) {
-		if (todoService.findTaskById(task.getId()) == null) {
-			todoView.taskError(noTaskErrorMessage(task));
-			return;
+		try {
+			List<String> tags = todoService.findTagsByTaskId(task.getId());
+			todoView.showTaskTags(getTags(tags));
+		} catch (TaskRepositoryException exception) {
+			todoView.taskError(exception.getMessage());
 		}
-
-		List<String> tags = todoService.findTagsByTaskId(task.getId());
-		todoView.showTaskTags(getTags(tags));
 	}
 
 	public void getTasksByTag(Tag tag) {
-		if (todoService.findTagById(tag.getId()) == null) {
-			todoView.tagError(noTagErrorMessage(tag));
-			return;
+		try {
+			List<String> tasks = todoService.findTasksByTagId(tag.getId());
+			todoView.showTagTasks(getTasks(tasks));
+		} catch (TagRepositoryException exception) {
+			todoView.tagError(exception.getMessage());
 		}
-
-		List<String> tasks = todoService.findTasksByTagId(tag.getId());
-		todoView.showTagTasks(getTasks(tasks));
 	}
 
 	private List<Tag> getTags(List<String> tagIds) {
@@ -168,13 +133,5 @@ public class TodoController {
 		}
 
 		return tasks;
-	}
-
-	private String noTaskErrorMessage(Task task) {
-		return "No task with ID " + task.getId();
-	}
-
-	private String noTagErrorMessage(Tag tag) {
-		return "No tag with ID " + tag.getId();
 	}
 }
