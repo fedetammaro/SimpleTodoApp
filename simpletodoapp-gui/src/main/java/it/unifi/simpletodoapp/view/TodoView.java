@@ -13,7 +13,7 @@ public interface TodoView {
 	public void showAllTags(List<Tag> allTags);
 	public void tagAdded(Tag tag);
 	public void tagError(String string);
-	public void tagRemoved(Tag tag);
+	public void tagDeleted(Tag tag);
 	public void showTaskTags(List<Tag> tags);
 	public void showTagTasks(List<Task> tasks);
 	public void taskRemovedFromTag(Task task);

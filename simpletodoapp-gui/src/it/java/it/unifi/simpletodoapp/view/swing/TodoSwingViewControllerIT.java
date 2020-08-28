@@ -441,7 +441,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 
 		// Verify phase
 		assertThat(tagsPanel.label("tagsErrorLabel").text())
-		.isEqualTo("Tag with ID " + tag.getId() + " has already been removed");
+		.isEqualTo("Tag with ID " + tag.getId() + " has already been deleted");
 	}
 
 	@Test @GUITest

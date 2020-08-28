@@ -4,6 +4,7 @@ import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
+import it.unifi.simpletodoapp.repository.TagRepositoryException;
 import it.unifi.simpletodoapp.repository.TaskRepositoryException;
 import it.unifi.simpletodoapp.repository.TransactionManager;
 
@@ -70,6 +71,16 @@ public class TodoService {
 	public void saveTag(Tag tag) {
 		transactionManager.doTagTransaction(
 				(tagMongoRepository, clientSession) -> {
+					if (tagMongoRepository.findById(tag.getId(), clientSession) != null) {
+						throw new TagRepositoryException("Cannot add tag with duplicated ID " + tag.getId());
+					}
+					
+					List<Tag> tagList = getAllTags();
+
+					if(tagList.stream().anyMatch(t -> t.getName().equals(tag.getName()))) {
+						throw new TagRepositoryException("Cannot add tag with duplicated name \"" + tag.getName() + "\"");
+					}
+					
 					tagMongoRepository.save(tag, clientSession);
 					return null;
 				});
@@ -79,6 +90,10 @@ public class TodoService {
 		// Delete the tag and remove it from all the tasks it was associated to
 		transactionManager.doCompositeTransaction(
 				(taskRepository, tagRepository, clientSession) -> {
+					if (tagRepository.findById(tag.getId(), clientSession) == null) {
+						throw new TagRepositoryException("Tag with ID " + tag.getId() + " has already been deleted");
+					}
+					
 					tagRepository.getTasksByTagId(tag.getId(), clientSession)
 					.stream()
 					.forEach(taskId -> taskRepository.removeTagFromTask(taskId, tag.getId(), clientSession));

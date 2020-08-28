@@ -21,6 +21,7 @@ import org.mockito.MockitoAnnotations;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
+import it.unifi.simpletodoapp.repository.TagRepositoryException;
 import it.unifi.simpletodoapp.repository.TaskRepositoryException;
 import it.unifi.simpletodoapp.service.TodoService;
 import it.unifi.simpletodoapp.view.TodoView;
@@ -119,7 +120,7 @@ public class TodoControllerTest {
 		doThrow(new TaskRepositoryException("Task with ID " + task.getId() + " has already been deleted"))
 		.when(todoService)
 		.deleteTask(task);
-		
+
 		// Exercise phase
 		todoController.deleteTask(task);
 
@@ -165,45 +166,41 @@ public class TodoControllerTest {
 	}
 
 	@Test
-	public void testTagAdditionWithExistingId() {
+	public void testTagAdditionWithDuplicatedId() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
-		Tag duplicatedTag = new Tag("1", "Free time");
-		when(todoService.findTagById(duplicatedTag.getId()))
-		.thenReturn(tag);
+		doThrow(new TagRepositoryException("Cannot add tag with duplicated ID " + tag.getId()))
+		.when(todoService)
+		.saveTag(tag);
 
 		// Exercise phase
-		todoController.addTag(duplicatedTag);
+		todoController.addTag(tag);
 
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
-		inOrder.verify(todoService).findTagById(duplicatedTag.getId());
-		inOrder.verify(todoService, never()).saveTag(any());
+		inOrder.verify(todoService).saveTag(tag);
+		inOrder.verify(todoView, never()).tagAdded(any());
 		inOrder.verify(todoView).tagError(
-				"Cannot add tag with duplicated ID " + duplicatedTag.getId());
-		inOrder.verifyNoMoreInteractions();
-	}
+				"Cannot add tag with duplicated ID " + tag.getId());
+		inOrder.verifyNoMoreInteractions();	}
 
 	@Test
 	public void testTagAdditionWithExistingName() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
-		Tag duplicatedTag = new Tag("2", "Work");
-		when(todoService.findTagById(duplicatedTag.getId()))
-		.thenReturn(null);
-		when(todoService.getAllTags())
-		.thenReturn(Collections.singletonList(tag));
+		doThrow(new TagRepositoryException("Cannot add tag with duplicated name \"" + tag.getId() + "\""))
+		.when(todoService)
+		.saveTag(tag);
 
 		// Exercise phase
-		todoController.addTag(duplicatedTag);
+		todoController.addTag(tag);
 
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
-		inOrder.verify(todoService).findTagById(duplicatedTag.getId());
-		inOrder.verify(todoService).getAllTags();
-		inOrder.verify(todoService, never()).saveTag(any());
+		inOrder.verify(todoService).saveTag(tag);
+		inOrder.verify(todoView, never()).tagAdded(any());
 		inOrder.verify(todoView).tagError(
-				"Cannot add tag with duplicated name \"" + duplicatedTag.getName() + "\"");
+				"Cannot add tag with duplicated name \"" + tag.getId() + "\"");
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -235,30 +232,31 @@ public class TodoControllerTest {
 		.thenReturn(tag);
 
 		// Exercise phase
-		todoController.removeTag(tag);
+		todoController.deleteTag(tag);
 
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).deleteTag(tag);
-		inOrder.verify(todoView).tagRemoved(tag);
+		inOrder.verify(todoView).tagDeleted(tag);
 	}
 
 	@Test
 	public void testTagDeletionWhenAlreadyDeleted() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
-		when(todoService.findTagById(tag.getId()))
-		.thenReturn(null);
+		doThrow(new TagRepositoryException("Tag with ID " + tag.getId() + " has already been deleted"))
+		.when(todoService)
+		.deleteTag(tag);
 
 		// Exercise phase
-		todoController.removeTag(tag);
+		todoController.deleteTag(tag);
 
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
-		inOrder.verify(todoService).findTagById(tag.getId());
-		inOrder.verify(todoService, never()).deleteTag(any());
+		inOrder.verify(todoService).deleteTag(tag);
+		inOrder.verify(todoView, never()).tagDeleted(any());
 		inOrder.verify(todoView).tagError(
-				"Tag with ID " + tag.getId() + " has already been removed");
+				"Tag with ID " + tag.getId() + " has already been deleted");
 		inOrder.verifyNoMoreInteractions();
 	}
 
