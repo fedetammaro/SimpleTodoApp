@@ -75,7 +75,7 @@ public class TodoService {
 						throw new TagRepositoryException("Cannot add tag with duplicated ID " + tag.getId());
 					}
 					
-					List<Tag> tagList = getAllTags();
+					List<Tag> tagList = tagMongoRepository.findAll(clientSession);
 
 					if(tagList.stream().anyMatch(t -> t.getName().equals(tag.getName()))) {
 						throw new TagRepositoryException("Cannot add tag with duplicated name \"" + tag.getName() + "\"");

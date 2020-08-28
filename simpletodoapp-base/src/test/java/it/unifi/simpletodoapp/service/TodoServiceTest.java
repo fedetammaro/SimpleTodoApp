@@ -127,7 +127,7 @@ public class TodoServiceTest {
 		inOrder.verify(taskRepository).save(task, clientSession);
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testSaveTaskWithDuplicatedId() {
 		// Setup phase
@@ -163,14 +163,14 @@ public class TodoServiceTest {
 		inOrder.verify(taskRepository).delete(task, clientSession);
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testDeleteNonExistingTask() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
 		when(taskRepository.findById(task.getId(), clientSession))
 		.thenReturn(null);
-		
+
 		// Exercise and verify phases
 		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
 				() -> todoService.deleteTask(task));
@@ -223,9 +223,13 @@ public class TodoServiceTest {
 	}
 
 	@Test
-	public void testSaveTagWithUniqueId() {
+	public void testSaveTagWithUniqueIdAndName() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(null);
+		when(tagRepository.findAll(clientSession))
+		.thenReturn(Collections.emptyList());
 
 		// Exercise phase
 		todoService.saveTag(tag);
@@ -236,7 +240,7 @@ public class TodoServiceTest {
 		inOrder.verify(tagRepository).save(tag, clientSession);
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testSaveTagWithDuplicatedId() {
 		// Setup phase
@@ -250,6 +254,44 @@ public class TodoServiceTest {
 		assertThat(exception.getMessage())
 		.isEqualTo("Cannot add tag with duplicated ID " + tag.getId());
 		verify(tagRepository, never()).save(tag, clientSession);
+	}
+
+	@Test
+	public void testSaveTagWithDuplicatedName() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(null);
+		when(tagRepository.findAll(clientSession))
+		.thenReturn(Arrays.asList(new Tag("2", "Work")));
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.saveTag(tag));
+		assertThat(exception.getMessage())
+		.isEqualTo("Cannot add tag with duplicated name \"" + tag.getName() + "\"");
+		verify(tagRepository, never()).save(tag, clientSession);
+	}
+
+	@Test
+	public void testSaveTagWithUniqueIdAndNameWithOtherTags() {
+		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(null);
+		when(tagRepository.findAll(clientSession))
+		.thenReturn(Arrays.asList(
+				new Tag("2", "Important"),
+				new Tag("3", "Free time")
+				));
+
+		// Exercise phase
+		todoService.saveTag(tag);
+		
+		// Verify phase
+		InOrder inOrder = inOrder(transactionManager, tagRepository);
+		inOrder.verify(transactionManager).doTagTransaction(any());
+		inOrder.verify(tagRepository).save(tag, clientSession);
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -272,14 +314,14 @@ public class TodoServiceTest {
 		inOrder.verify(tagRepository).delete(tag, clientSession);
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testDeleteNonExistingTag() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		when(tagRepository.findById(tag.getId(), clientSession))
 		.thenReturn(null);
-		
+
 		// Exercise and verify phases
 		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
 				() -> todoService.deleteTag(tag));

@@ -60,7 +60,7 @@ public class TodoControllerTest {
 	}
 
 	@Test
-	public void testTaskAdditionWithUniqueId() {
+	public void testSuccessfulTaskAddition() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
 		when(todoService.findTaskById(task.getId()))
@@ -77,7 +77,7 @@ public class TodoControllerTest {
 	}
 
 	@Test
-	public void testTaskAdditionWithDuplicatedId() {
+	public void testTaskAdditionException() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
 		doThrow(new TaskRepositoryException("Cannot add task with duplicated ID " + task.getId()))
@@ -114,7 +114,7 @@ public class TodoControllerTest {
 	}
 
 	@Test
-	public void testTaskDeletionWhenTaskAlreadyDeleted() {
+	public void testTaskDeletionException() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
 		doThrow(new TaskRepositoryException("Task with ID " + task.getId() + " has already been deleted"))
@@ -149,7 +149,7 @@ public class TodoControllerTest {
 	}
 
 	@Test
-	public void testTagAdditionWithUniqueIdAndName() {
+	public void testSuccessfulTagAddition() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		when(todoService.findTagById(tag.getId()))
@@ -166,7 +166,7 @@ public class TodoControllerTest {
 	}
 
 	@Test
-	public void testTagAdditionWithDuplicatedId() {
+	public void testTagAdditionException() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
 		doThrow(new TagRepositoryException("Cannot add tag with duplicated ID " + tag.getId()))
@@ -182,46 +182,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoView, never()).tagAdded(any());
 		inOrder.verify(todoView).tagError(
 				"Cannot add tag with duplicated ID " + tag.getId());
-		inOrder.verifyNoMoreInteractions();	}
-
-	@Test
-	public void testTagAdditionWithExistingName() {
-		// Setup phase
-		Tag tag = new Tag("1", "Work");
-		doThrow(new TagRepositoryException("Cannot add tag with duplicated name \"" + tag.getId() + "\""))
-		.when(todoService)
-		.saveTag(tag);
-
-		// Exercise phase
-		todoController.addTag(tag);
-
-		// Verify phase: we also verify the order of the invocations
-		InOrder inOrder = inOrder(todoService, todoView);
-		inOrder.verify(todoService).saveTag(tag);
-		inOrder.verify(todoView, never()).tagAdded(any());
-		inOrder.verify(todoView).tagError(
-				"Cannot add tag with duplicated name \"" + tag.getId() + "\"");
 		inOrder.verifyNoMoreInteractions();
-	}
-
-	@Test
-	public void testTagAdditionWithUniqueIdAndNameWithAlreadyPresentTags() {
-		// Setup phase
-		Tag tag = new Tag("3", "Housekeeping");
-		when(todoService.findTagById(tag.getId()))
-		.thenReturn(null);
-		when(todoService.getAllTags())
-		.thenReturn(Arrays.asList(
-				new Tag("1", "Work"),
-				new Tag("2", "Sport")
-				));
-
-		// Exercise phase
-		todoController.addTag(tag);
-
-		// Verify phase
-		verify(todoService).saveTag(tag);
-		verify(todoView).tagAdded(tag);
 	}
 
 	@Test
