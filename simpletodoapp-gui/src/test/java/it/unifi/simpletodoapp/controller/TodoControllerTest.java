@@ -1,6 +1,7 @@
 package it.unifi.simpletodoapp.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -20,6 +21,7 @@ import org.mockito.MockitoAnnotations;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
+import it.unifi.simpletodoapp.repository.TaskRepositoryException;
 import it.unifi.simpletodoapp.service.TodoService;
 import it.unifi.simpletodoapp.view.TodoView;
 
@@ -77,19 +79,19 @@ public class TodoControllerTest {
 	public void testTaskAdditionWithDuplicatedId() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
-		Task duplicatedTask = new Task("1", "Buy even more groceries");
-		when(todoService.findTaskById(duplicatedTask.getId()))
-		.thenReturn(task);
+		doThrow(new TaskRepositoryException("Cannot add task with duplicated ID " + task.getId()))
+		.when(todoService)
+		.saveTask(task);
 
 		// Exercise phase
-		todoController.addTask(duplicatedTask);
+		todoController.addTask(task);
 
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
-		inOrder.verify(todoService).findTaskById(duplicatedTask.getId());
-		inOrder.verify(todoService, never()).saveTask(any());
+		inOrder.verify(todoService).saveTask(task);
+		inOrder.verify(todoView, never()).taskAdded(any());
 		inOrder.verify(todoView).taskError(
-				"Cannot add task with duplicated ID " + duplicatedTask.getId());
+				"Cannot add task with duplicated ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -114,18 +116,19 @@ public class TodoControllerTest {
 	public void testTaskDeletionWhenTaskAlreadyDeleted() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
-		when(todoService.findTaskById(task.getId()))
-		.thenReturn(null);
-
+		doThrow(new TaskRepositoryException("Task with ID " + task.getId() + " has already been deleted"))
+		.when(todoService)
+		.deleteTask(task);
+		
 		// Exercise phase
 		todoController.deleteTask(task);
 
 		// Verify phase: we also verify the order of the invocations
 		InOrder inOrder = inOrder(todoService, todoView);
-		inOrder.verify(todoService).findTaskById(task.getId());
-		inOrder.verify(todoService, never()).deleteTask(any());
+		inOrder.verify(todoService).deleteTask(task);
+		inOrder.verify(todoView, never()).taskDeleted(any());
 		inOrder.verify(todoView).taskError(
-				"Task with ID " + task.getId() + " has already been removed");
+				"Task with ID " + task.getId() + " has already been deleted");
 		inOrder.verifyNoMoreInteractions();
 	}
 

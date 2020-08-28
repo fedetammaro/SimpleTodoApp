@@ -4,6 +4,7 @@ import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
+import it.unifi.simpletodoapp.repository.TaskRepositoryException;
 import it.unifi.simpletodoapp.repository.TransactionManager;
 
 public class TodoService {
@@ -28,6 +29,10 @@ public class TodoService {
 	public void saveTask(Task task) {
 		transactionManager.doTaskTransaction(
 				(taskMongoRepository, clientSession) -> {
+					if (taskMongoRepository.findById(task.getId(), clientSession) != null) {
+						throw new TaskRepositoryException("Cannot add task with duplicated ID " + task.getId());
+					}
+					
 					taskMongoRepository.save(task, clientSession);
 					return null;
 				});
@@ -37,6 +42,10 @@ public class TodoService {
 		// Delete the task and remove it from all the tags it was associated to
 		transactionManager.doCompositeTransaction(
 				(taskRepository, tagRepository, clientSession) -> {
+					if (taskRepository.findById(task.getId(), clientSession) == null) {
+						throw new TaskRepositoryException("Task with ID " + task.getId() + " has already been deleted");
+					}
+					
 					taskRepository.getTagsByTaskId(task.getId(), clientSession)
 					.stream()
 					.forEach(tagId -> tagRepository.removeTaskFromTag(tagId, task.getId(), clientSession));

@@ -5,6 +5,7 @@ import java.util.List;
 
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
+import it.unifi.simpletodoapp.repository.TaskRepositoryException;
 import it.unifi.simpletodoapp.service.TodoService;
 import it.unifi.simpletodoapp.view.TodoView;
 
@@ -22,24 +23,20 @@ public class TodoController {
 	}
 
 	public void addTask(Task task) {
-		Task retrievedTask = todoService.findTaskById(task.getId());
-
-		if (retrievedTask == null) {
+		try {
 			todoService.saveTask(task);
 			todoView.taskAdded(task);
-		} else {
-			todoView.taskError("Cannot add task with duplicated ID " + task.getId());
+		} catch(TaskRepositoryException exception) {
+			todoView.taskError(exception.getMessage());
 		}
 	}
 
 	public void deleteTask(Task task) {
-		Task retrievedTask = todoService.findTaskById(task.getId());
-
-		if (retrievedTask == null) {
-			todoView.taskError("Task with ID " + task.getId() + " has already been removed");
-		} else {
+		try {
 			todoService.deleteTask(task);
 			todoView.taskDeleted(task);
+		} catch (TaskRepositoryException exception) {
+			todoView.taskError(exception.getMessage());
 		}
 	}
 
