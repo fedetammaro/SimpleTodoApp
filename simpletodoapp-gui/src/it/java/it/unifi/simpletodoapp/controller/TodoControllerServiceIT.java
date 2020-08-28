@@ -183,12 +183,12 @@ public class TodoControllerServiceIT {
 		addTagToCollection(tag, Collections.emptyList());
 
 		// Exercise phase
-		todoController.removeTag(tag);
+		todoController.deleteTag(tag);
 
 		// Verify phase
 		assertThat(getAllTagsFromDatabase())
 		.isEmpty();
-		verify(todoSwingView).tagRemoved(tag);
+		verify(todoSwingView).tagDeleted(tag);
 	}
 
 	@Test

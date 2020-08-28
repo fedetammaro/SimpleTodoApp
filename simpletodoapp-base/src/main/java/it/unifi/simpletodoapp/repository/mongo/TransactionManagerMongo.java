@@ -35,7 +35,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			// Execute the transaction within the ClientSession
 			value = clientSession.withTransaction(transactionBody);
-		} catch(RuntimeException e) {
+		} catch(MongoException e) {
 			throw new MongoException("Task transaction failed, aborting");
 		} finally {
 			clientSession.close();
@@ -57,7 +57,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			// Execute the transaction within the ClientSession
 			value = clientSession.withTransaction(transactionBody);
-		} catch(RuntimeException e) {
+		} catch(MongoException e) {
 			throw new MongoException("Tag transaction failed, aborting");
 		} finally {
 			clientSession.close();
@@ -79,7 +79,7 @@ public class TransactionManagerMongo implements TransactionManager {
 		try {
 			// Execute the transaction within the ClientSession
 			value = clientSession.withTransaction(transactionBody);
-		} catch(RuntimeException e) {
+		} catch(MongoException e) {
 			throw new MongoException("Composite transaction failed, aborting");
 		} finally {
 			clientSession.close();

@@ -235,7 +235,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 	}
 
 	@Override
-	public void tagRemoved(Tag tag) {
+	public void tagDeleted(Tag tag) {
 		tagListModel.removeTag(tag);
 		tagComboModel.removeTag(tag);
 		tagsErrorLabel.setText(" ");
@@ -720,7 +720,7 @@ public class TodoSwingView extends JFrame implements TodoView {
 
 		btnDeleteTag.addActionListener(l -> {
 			Tag tag = tagListModel.get(tagsTagList.getSelectedIndex()).tag;
-			todoController.removeTag(tag);
+			todoController.deleteTag(tag);
 		});
 	}
 

@@ -1,10 +1,12 @@
 package it.unifi.simpletodoapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.AdditionalAnswers.answer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -23,7 +25,9 @@ import com.mongodb.client.ClientSession;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.repository.CompositeTransactionCode;
+import it.unifi.simpletodoapp.repository.TagRepositoryException;
 import it.unifi.simpletodoapp.repository.TagTransactionCode;
+import it.unifi.simpletodoapp.repository.TaskRepositoryException;
 import it.unifi.simpletodoapp.repository.TaskTransactionCode;
 import it.unifi.simpletodoapp.repository.TransactionManager;
 import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
@@ -109,7 +113,7 @@ public class TodoServiceTest {
 	}
 
 	@Test
-	public void testSaveTask() {
+	public void testSaveTaskWithUniqueId() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
 
@@ -124,9 +128,26 @@ public class TodoServiceTest {
 	}
 
 	@Test
-	public void testDeleteTask() {
+	public void testSaveTaskWithDuplicatedId() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(task);
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.saveTask(task));
+		assertThat(exception.getMessage())
+		.isEqualTo("Cannot add task with duplicated ID " + task.getId());
+		verify(taskRepository, never()).save(task, clientSession);
+	}
+
+	@Test
+	public void testDeleteExistingTask() {
+		// Setup phase
+		Task task = new Task("1", "Buy groceries");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(task);
 		when(taskRepository.getTagsByTaskId(task.getId(), clientSession))
 		.thenReturn(Collections.singletonList("1"));
 
@@ -140,6 +161,21 @@ public class TodoServiceTest {
 		inOrder.verify(tagRepository).removeTaskFromTag("1", task.getId(), clientSession);
 		inOrder.verify(taskRepository).delete(task, clientSession);
 		inOrder.verifyNoMoreInteractions();
+	}
+
+	@Test
+	public void testDeleteNonExistingTask() {
+		// Setup phase
+		Task task = new Task("1", "Buy groceries");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.deleteTask(task));
+		assertThat(exception.getMessage())
+		.isEqualTo("Task with ID " + task.getId() + " has already been deleted");
+		verify(taskRepository, never()).delete(task, clientSession);
 	}
 
 	@Test
@@ -186,9 +222,13 @@ public class TodoServiceTest {
 	}
 
 	@Test
-	public void testSaveTag() {
+	public void testSaveTagWithUniqueIdAndName() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(null);
+		when(tagRepository.findAll(clientSession))
+		.thenReturn(Collections.emptyList());
 
 		// Exercise phase
 		todoService.saveTag(tag);
@@ -201,9 +241,64 @@ public class TodoServiceTest {
 	}
 
 	@Test
-	public void testDeleteTag() {
+	public void testSaveTagWithDuplicatedId() {
 		// Setup phase
 		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(tag);
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.saveTag(tag));
+		assertThat(exception.getMessage())
+		.isEqualTo("Cannot add tag with duplicated ID " + tag.getId());
+		verify(tagRepository, never()).save(tag, clientSession);
+	}
+
+	@Test
+	public void testSaveTagWithDuplicatedName() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(null);
+		when(tagRepository.findAll(clientSession))
+		.thenReturn(Arrays.asList(new Tag("2", "Work")));
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.saveTag(tag));
+		assertThat(exception.getMessage())
+		.isEqualTo("Cannot add tag with duplicated name \"" + tag.getName() + "\"");
+		verify(tagRepository, never()).save(tag, clientSession);
+	}
+
+	@Test
+	public void testSaveTagWithUniqueIdAndNameWithOtherTags() {
+		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(null);
+		when(tagRepository.findAll(clientSession))
+		.thenReturn(Arrays.asList(
+				new Tag("2", "Important"),
+				new Tag("3", "Free time")
+				));
+
+		// Exercise phase
+		todoService.saveTag(tag);
+
+		// Verify phase
+		InOrder inOrder = inOrder(transactionManager, tagRepository);
+		inOrder.verify(transactionManager).doTagTransaction(any());
+		inOrder.verify(tagRepository).save(tag, clientSession);
+		inOrder.verifyNoMoreInteractions();
+	}
+
+	@Test
+	public void testDeleteExistingTag() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(tag);
 		when(tagRepository.getTasksByTagId(tag.getId(), clientSession))
 		.thenReturn(Collections.singletonList("1"));
 
@@ -211,7 +306,7 @@ public class TodoServiceTest {
 		todoService.deleteTag(tag);
 
 		// Verify phase
-		InOrder inOrder = inOrder(transactionManager, tagRepository, taskRepository);
+		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(tagRepository).getTasksByTagId(tag.getId(), clientSession);
 		inOrder.verify(taskRepository).removeTagFromTask("1", tag.getId(), clientSession);
@@ -220,10 +315,27 @@ public class TodoServiceTest {
 	}
 
 	@Test
-	public void testFindTasksByTagId() {
+	public void testDeleteNonExistingTag() {
+		// Setup phase
+		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.deleteTag(tag));
+		assertThat(exception.getMessage())
+		.isEqualTo("Tag with ID " + tag.getId() + " has already been deleted");
+		verify(tagRepository, never()).delete(tag, clientSession);
+	}
+
+	@Test
+	public void testSuccessfulFindTasksByTagId() {
 		// Setup phase
 		List<String> tasks = Collections.singletonList("1");
 		Tag tag = new Tag("1", "Work");
+		when(tagRepository.findById("1", clientSession))
+		.thenReturn(tag);
 		when(tagRepository.getTasksByTagId(tag.getId(), clientSession))
 		.thenReturn(Collections.singletonList(tag.getId()));
 
@@ -241,10 +353,26 @@ public class TodoServiceTest {
 	}
 
 	@Test
+	public void testFindTasksByTagIdWhenTagNonExistent() {
+		// Setup phase
+		String tagId = "1";
+		when(tagRepository.findById(tagId, clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.findTasksByTagId(tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No tag with ID " + tagId);
+	}
+
+	@Test
 	public void testFindTagsByTaskId() {
 		// Setup phase
 		List<String> tags = Collections.singletonList("1");
 		Task task = new Task("1", "Start using TDD");
+		when(taskRepository.findById("1", clientSession))
+		.thenReturn(task);
 		when(taskRepository.getTagsByTaskId(task.getId(), clientSession))
 		.thenReturn(Collections.singletonList(task.getId()));
 
@@ -260,12 +388,32 @@ public class TodoServiceTest {
 		assertThat(tags)
 		.isEqualTo(retrievedTags);
 	}
+	
+	@Test
+	public void testFindTagsByTaskIdWhenTaskNonExistent() {
+		// Setup phase
+		String taskId = "1";
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.findTagsByTaskId(taskId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No task with ID " + taskId);
+	}
 
 	@Test
-	public void testTagAdditionToTaskOrViceversa() {
+	public void testSuccessfulTagAdditionToTask() {
 		// Setup phase
 		Task task = new Task("1", "Start using TDD");
 		Tag tag = new Tag("1", "Work");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(tag);
+		when(taskRepository.getTagsByTaskId(task.getId(), clientSession))
+		.thenReturn(Collections.emptyList());
 
 		// Exercise phase
 		todoService.addTagToTask(task.getId(), tag.getId());
@@ -275,14 +423,103 @@ public class TodoServiceTest {
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(taskRepository).addTagToTask(task.getId(), tag.getId(), clientSession);
 		inOrder.verify(tagRepository).addTaskToTag(tag.getId(), task.getId(), clientSession);
-		verifyNoMoreInteractions(transactionManager, taskRepository, tagRepository);
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
-	public void testTagRemovalFromTaskOrViceversa() {
+	public void testSuccessfulTagAdditionToTaskWithOtherTags() {
 		// Setup phase
 		Task task = new Task("1", "Start using TDD");
 		Tag tag = new Tag("1", "Work");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(tag);
+		when(taskRepository.getTagsByTaskId(task.getId(), clientSession))
+		.thenReturn(Arrays.asList("2"));
+
+		// Exercise phase
+		todoService.addTagToTask(task.getId(), tag.getId());
+
+		// Verify phase
+		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
+		inOrder.verify(transactionManager).doCompositeTransaction(any());
+		inOrder.verify(taskRepository).addTagToTask(task.getId(), tag.getId(), clientSession);
+		inOrder.verify(tagRepository).addTaskToTag(tag.getId(), task.getId(), clientSession);
+		inOrder.verifyNoMoreInteractions();
+	}
+
+	@Test
+	public void testDuplicatedTagAdditionToTask() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		Task task = new Task(taskId, "Start using TDD");
+		Tag tag = new Tag(tagId, "Work");
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tagId, clientSession))
+		.thenReturn(tag);
+		when(taskRepository.getTagsByTaskId(taskId, clientSession))
+		.thenReturn(Arrays.asList(tagId));
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.addTagToTask(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("Tag with ID " + tagId +	" is already assigned to task with ID " + taskId);
+		verify(taskRepository, never()).addTagToTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).addTaskToTag(tagId, taskId, clientSession);
+	}
+
+	@Test
+	public void testTagAdditionToTaskWhenTaskNonExistent() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.addTagToTask(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No task with ID " + taskId);
+		verify(taskRepository, never()).addTagToTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).addTaskToTag(tagId, taskId, clientSession);
+	}
+
+	@Test
+	public void testTagAdditionToTaskWhenTagNonExistent() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		Task task = new Task(taskId, "Start using TDD");
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tagId, clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.addTagToTask(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No tag with ID " + tagId);
+		verify(taskRepository, never()).addTagToTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).addTaskToTag(tagId, taskId, clientSession);
+	}
+
+	@Test
+	public void testSuccessfulTagRemovalFromTask() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(tag);
+		when(taskRepository.getTagsByTaskId(task.getId(), clientSession))
+		.thenReturn(Arrays.asList(tag.getId()));
 
 		// Exercise phase
 		todoService.removeTagFromTask(task.getId(), tag.getId());
@@ -292,6 +529,149 @@ public class TodoServiceTest {
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(taskRepository).removeTagFromTask(task.getId(), tag.getId(), clientSession);
 		inOrder.verify(tagRepository).removeTaskFromTag(tag.getId(), task.getId(), clientSession);
-		verifyNoMoreInteractions(transactionManager, taskRepository, tagRepository);
+		inOrder.verifyNoMoreInteractions();
+	}
+
+	@Test
+	public void testTagRemovalFromTaskWhenTaskNonExistent() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.removeTagFromTask(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No task with ID " + taskId);
+		verify(taskRepository, never()).removeTagFromTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).removeTaskFromTag(tagId, taskId, clientSession);
+	}
+
+	@Test
+	public void testTagRemovalFromTaskWhenTagNonExistent() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		Task task = new Task(taskId, "Start using TDD");
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tagId, clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.removeTagFromTask(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No tag with ID " + tagId);
+		verify(taskRepository, never()).removeTagFromTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).removeTaskFromTag(tagId, taskId, clientSession);
+	}
+
+	@Test
+	public void testTagRemovalFromTaskWhenTagNotAssignedToTask() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		Task task = new Task(taskId, "Start using TDD");
+		Tag tag = new Tag(tagId, "Work");
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tagId, clientSession))
+		.thenReturn(tag);
+		when(taskRepository.getTagsByTaskId(taskId, clientSession))
+		.thenReturn(Arrays.asList("2"));
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.removeTagFromTask(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No tag with ID " + tagId +  " assigned to task with ID " + taskId);
+		verify(taskRepository, never()).removeTagFromTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).removeTaskFromTag(tagId, taskId, clientSession);
+	}
+
+	@Test
+	public void testSuccessfulTaskRemovalFromTag() {
+		// Setup phase
+		Task task = new Task("1", "Start using TDD");
+		Tag tag = new Tag("1", "Work");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tag.getId(), clientSession))
+		.thenReturn(tag);
+		when(tagRepository.getTasksByTagId(tag.getId(), clientSession))
+		.thenReturn(Arrays.asList(task.getId()));
+
+		// Exercise phase
+		todoService.removeTaskFromTag(task.getId(), tag.getId());
+
+		// Verify phase
+		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
+		inOrder.verify(transactionManager).doCompositeTransaction(any());
+		inOrder.verify(taskRepository).removeTagFromTask(task.getId(), tag.getId(), clientSession);
+		inOrder.verify(tagRepository).removeTaskFromTag(tag.getId(), task.getId(), clientSession);
+		inOrder.verifyNoMoreInteractions();
+	}
+
+	@Test
+	public void testTaskRemovalFromTagWhenTaskNonExistent() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.removeTaskFromTag(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No task with ID " + taskId);
+		verify(taskRepository, never()).removeTagFromTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).removeTaskFromTag(tagId, taskId, clientSession);
+	}
+
+	@Test
+	public void testTaskRemovalFromTagWhenTagNonExistent() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		Task task = new Task(taskId, "Start using TDD");
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tagId, clientSession))
+		.thenReturn(null);
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.removeTaskFromTag(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No tag with ID " + tagId);
+		verify(taskRepository, never()).removeTagFromTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).removeTaskFromTag(tagId, taskId, clientSession);
+	}
+
+	@Test
+	public void testTaskRemovalFromTagWhenTagNotAssignedToTask() {
+		// Setup phase
+		String taskId = "1";
+		String tagId = "1";
+		Task task = new Task(taskId, "Start using TDD");
+		Tag tag = new Tag(tagId, "Work");
+		when(taskRepository.findById(taskId, clientSession))
+		.thenReturn(task);
+		when(tagRepository.findById(tagId, clientSession))
+		.thenReturn(tag);
+		when(tagRepository.getTasksByTagId(tagId, clientSession))
+		.thenReturn(Arrays.asList("2"));
+
+		// Exercise and verify phases
+		TagRepositoryException exception = assertThrows(TagRepositoryException.class,
+				() -> todoService.removeTaskFromTag(taskId, tagId));
+		assertThat(exception.getMessage())
+		.isEqualTo("No task with ID " + taskId +  " assigned to tag with ID " + tagId);
+		verify(taskRepository, never()).removeTagFromTask(taskId, tagId, clientSession);
+		verify(tagRepository, never()).removeTaskFromTag(tagId, taskId, clientSession);
 	}
 }

@@ -706,7 +706,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		tagsPanel.button("btnDeleteTag").click();
 
 		// Verify phase
-		verify(todoController).removeTag(tag);
+		verify(todoController).deleteTag(tag);
 	}
 
 	@Test @GUITest
@@ -720,7 +720,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		GuiActionRunner.execute(
 				() -> {
 					todoSwingView.tagAdded(tag);
-					todoSwingView.tagRemoved(tag);
+					todoSwingView.tagDeleted(tag);
 				});
 
 		// Verify phase
@@ -740,7 +740,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 				() -> {
 					todoSwingView.tagAdded(tag);
 					todoSwingView.tagError("This is an error message");
-					todoSwingView.tagRemoved(tag);
+					todoSwingView.tagDeleted(tag);
 				});
 
 		// Verify phase
