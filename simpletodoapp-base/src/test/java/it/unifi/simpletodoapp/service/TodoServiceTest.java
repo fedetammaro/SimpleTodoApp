@@ -1,9 +1,12 @@
 package it.unifi.simpletodoapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.AdditionalAnswers.answer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +27,7 @@ import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
 import it.unifi.simpletodoapp.repository.CompositeTransactionCode;
 import it.unifi.simpletodoapp.repository.TagTransactionCode;
+import it.unifi.simpletodoapp.repository.TaskRepositoryException;
 import it.unifi.simpletodoapp.repository.TaskTransactionCode;
 import it.unifi.simpletodoapp.repository.TransactionManager;
 import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
@@ -109,7 +113,7 @@ public class TodoServiceTest {
 	}
 
 	@Test
-	public void testSaveTask() {
+	public void testSaveTaskWithUniqueId() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
 
@@ -122,11 +126,28 @@ public class TodoServiceTest {
 		inOrder.verify(taskRepository).save(task, clientSession);
 		inOrder.verifyNoMoreInteractions();
 	}
-
+	
 	@Test
-	public void testDeleteTask() {
+	public void testSaveTaskWithDuplicatedId() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(task);
+
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.saveTask(task));
+		assertThat(exception.getMessage())
+		.isEqualTo("Cannot add task with duplicated ID " + task.getId());
+		verify(taskRepository, never()).save(task, clientSession);
+	}
+
+	@Test
+	public void testDeleteExistingTask() {
+		// Setup phase
+		Task task = new Task("1", "Buy groceries");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(task);
 		when(taskRepository.getTagsByTaskId(task.getId(), clientSession))
 		.thenReturn(Collections.singletonList("1"));
 
@@ -140,6 +161,21 @@ public class TodoServiceTest {
 		inOrder.verify(tagRepository).removeTaskFromTag("1", task.getId(), clientSession);
 		inOrder.verify(taskRepository).delete(task, clientSession);
 		inOrder.verifyNoMoreInteractions();
+	}
+	
+	@Test
+	public void testDeleteNonExistingTask() {
+		// Setup phase
+		Task task = new Task("1", "Buy groceries");
+		when(taskRepository.findById(task.getId(), clientSession))
+		.thenReturn(null);
+		
+		// Exercise and verify phases
+		TaskRepositoryException exception = assertThrows(TaskRepositoryException.class,
+				() -> todoService.deleteTask(task));
+		assertThat(exception.getMessage())
+		.isEqualTo("Task with ID " + task.getId() + " has already been deleted");
+		verify(taskRepository, never()).delete(task, clientSession);
 	}
 
 	@Test
