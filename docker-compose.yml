@@ -19,8 +19,6 @@ services:
       - mongo-primary
     networks:
       - mongo-net
-    volumes:
-      - ./init.js:/docker-entrypoint-initdb.d/init.js:ro
     command: mongod --replSet todoapp-replica-set
 
 networks:
