@@ -55,7 +55,7 @@ public class TodoService {
 					return null;
 				});
 	}
-	
+
 	public void removeTaskFromTag(String taskId, String tagId) {
 		transactionManager.doCompositeTransaction(
 				(taskRepository, tagRepository, clientSession) -> {
@@ -157,7 +157,7 @@ public class TodoService {
 					if (taskMongoRepository.findById(taskId, clientSession) == null) {
 						throw new TaskRepositoryException(noTaskErrorMessage(taskId));
 					}
-					
+
 					return taskMongoRepository.getTagsByTaskId(taskId, clientSession);
 				});
 	}
@@ -192,7 +192,7 @@ public class TodoService {
 					if (tagMongoRepository.findById(tagId, clientSession) == null) {
 						throw new TagRepositoryException(noTagErrorMessage(tagId));
 					}
-					
+
 					return tagMongoRepository.getTasksByTagId(tagId, clientSession);
 				});
 	}

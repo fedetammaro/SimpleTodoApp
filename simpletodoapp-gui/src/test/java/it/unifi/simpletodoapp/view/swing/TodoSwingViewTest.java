@@ -165,7 +165,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		GuiActionRunner.execute(
 				() -> todoSwingView.taskAdded(task)
 				);
-		
+
 		// Verify phase
 		assertThat(tasksPanel.list("tasksTaskList").contents())
 		.containsExactly("#1 - Buy groceries");
@@ -180,7 +180,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		GuiActionRunner.execute(
 				() -> todoSwingView.taskError(errorMessage)
 				);
-		
+
 		// Verify phase
 		tasksPanel.label("tasksErrorLabel").requireText(errorMessage);
 	}
@@ -297,7 +297,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 				);
 
 		tasksPanel.list("tasksTaskList").clickItem(0);
-		
+
 		// Verify phase
 		verify(todoController).getTagsByTask(firstTask);
 	}
@@ -365,7 +365,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 
 		tasksPanel.list("tasksTaskList").clickItem(0);
 		tasksPanel.button("btnAssignTag").click();
-		
+
 		// Verify phase
 		verify(todoController).addTagToTask(task, tag);
 	}
@@ -545,7 +545,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 				tagsPanel.textBox("tagNameTextField");
 		JButtonFixture addTagButton =
 				tagsPanel.button("btnAddTag");
-		
+
 		// Exercise and verify phases
 		idField.enterText("1");
 		addTagButton.requireDisabled();
@@ -566,7 +566,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 				tagsPanel.textBox("tagNameTextField");
 		JButtonFixture addTagButton =
 				tagsPanel.button("btnAddTag");
-		
+
 		// Exercise and verify phases
 		idField.enterText(" ");
 		nameField.enterText("Work");
@@ -590,11 +590,11 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 				tagsPanel.textBox("tagNameTextField");
 		JButtonFixture addtagButton =
 				tagsPanel.button("btnAddTag");
-		
+
 		// Exercise phase
 		idField.enterText("1");
 		nameField.enterText("Work");
-		
+
 		// Verify phase
 		addtagButton.requireEnabled();
 	}
@@ -610,7 +610,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 				tagsPanel.textBox("tagNameTextField");
 		JButtonFixture addTagButton =
 				tagsPanel.button("btnAddTag");
-		
+
 		// Exercise phase
 		idField.enterText("1");
 		nameField.enterText("Work");
@@ -648,7 +648,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 		GuiActionRunner.execute(
 				() -> todoSwingView.tagError(errorMessage)
 				);
-		
+
 		// Verify phase
 		tagsPanel.label("tagsErrorLabel").requireText(errorMessage);
 	}
@@ -779,7 +779,7 @@ public class TodoSwingViewTest extends AssertJSwingJUnitTestCase {
 				);
 
 		tagsPanel.list("tagsTagList").clickItem(0);
-		
+
 		// Verify phase
 		verify(todoController).getTasksByTag(firstTag);
 	}

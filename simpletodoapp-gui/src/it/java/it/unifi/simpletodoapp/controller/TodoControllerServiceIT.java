@@ -55,11 +55,11 @@ public class TodoControllerServiceIT {
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
-	
+
 	@ClassRule
 	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
 	.withExposedPorts(MONGO_PORT);
-	
+
 	@BeforeClass
 	public static void setupMongoLogger() {
 		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -76,7 +76,7 @@ public class TodoControllerServiceIT {
 
 		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
 		mongoClient = MongoClients.create(mongoRsUrl);
-		
+
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 
@@ -112,10 +112,10 @@ public class TodoControllerServiceIT {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
 		addTaskToCollection(task, Collections.emptyList());
-		
+
 		// Exercise phase
 		todoController.getAllTasks();
-		
+
 		// Verify phase
 		verify(todoSwingView).showAllTasks(Collections.singletonList(task));
 	}
@@ -124,10 +124,10 @@ public class TodoControllerServiceIT {
 	public void testAddTask() {
 		// Setup phase
 		Task task = new Task("1", "Buy groceries");
-		
+
 		// Exercise phase
 		todoController.addTask(task);
-		
+
 		// Verify phase
 		assertThat(getAllTasksFromDatabase())
 		.containsExactly(task);
@@ -157,7 +157,7 @@ public class TodoControllerServiceIT {
 
 		// Exercise phase
 		todoController.getAllTags();
-		
+
 		// Verify phase
 		verify(todoSwingView).showAllTags(Collections.singletonList(tag));
 	}

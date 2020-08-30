@@ -48,7 +48,7 @@ public class TransactionManagerRepositoriesIT {
 	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
-	
+
 	@BeforeClass
 	public static void setupMongoLogger() {
 		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -77,7 +77,7 @@ public class TransactionManagerRepositoriesIT {
 		taskCollection = mongoDatabase.getCollection(TASKS_COLLECTION);
 		tagCollection = mongoDatabase.getCollection(TAGS_COLLECTION);
 	}
-	
+
 	@After
 	public void tearDown() {
 		/* Close the client connection after each test so that it can

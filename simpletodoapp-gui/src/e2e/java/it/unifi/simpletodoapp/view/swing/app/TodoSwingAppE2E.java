@@ -59,7 +59,7 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 	private FrameFixture frameFixture;
 	private JPanelFixture contentPanel;
 	private JTabbedPaneFixture tabPanel;
-	
+
 	@ClassRule
 	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
 	.withExposedPorts(MONGO_PORT);
@@ -130,14 +130,14 @@ public class TodoSwingAppE2E extends AssertJSwingJUnitTestCase {
 		 * be created anew in the next test */
 		mongoClient.close();
 	}
-	
+
 	@BeforeClass
 	public static void setupMongoLogger() {
 		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 		Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
 		rootLogger.setLevel(Level.INFO);
 	}
-	
+
 	@AfterClass
 	public static void stopContainer() {
 		// Stops the container after all methods have been executed

@@ -41,7 +41,7 @@ public class TagMongoRepositoryTest {
 	@ClassRule
 	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
 	.withExposedPorts(MONGO_PORT);
-	
+
 	@BeforeClass
 	public static void setupMongoLogger() {
 		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -56,7 +56,7 @@ public class TagMongoRepositoryTest {
 		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
 		mongoClient = MongoClients.create(mongoRsUrl);
 		clientSession = mongoClient.startSession();
-		
+
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, DB_COLLECTION);
 
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);

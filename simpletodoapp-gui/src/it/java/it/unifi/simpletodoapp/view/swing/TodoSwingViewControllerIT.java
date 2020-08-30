@@ -65,7 +65,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 	@ClassRule
 	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
 	.withExposedPorts(MONGO_PORT);
-	
+
 	@Override
 	public void onSetUp() {
 		/* Creates the mongo client by connecting it to the mongodb instance, both
@@ -75,7 +75,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
 		mongoClient = MongoClients.create(mongoRsUrl);
 		clientSession = mongoClient.startSession();
-		
+
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
@@ -111,7 +111,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 		clientSession.close();
 		mongoClient.close();
 	}
-	
+
 	@BeforeClass
 	public static void setupMongoLogger() {
 		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();

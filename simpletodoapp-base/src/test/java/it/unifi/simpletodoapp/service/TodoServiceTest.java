@@ -388,7 +388,7 @@ public class TodoServiceTest {
 		assertThat(tags)
 		.isEqualTo(retrievedTags);
 	}
-	
+
 	@Test
 	public void testFindTagsByTaskIdWhenTaskNonExistent() {
 		// Setup phase

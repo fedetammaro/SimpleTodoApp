@@ -49,6 +49,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).getAllTasks();
 		inOrder.verify(todoView).showAllTasks(Collections.emptyList());
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -130,6 +131,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).getAllTags();
 		inOrder.verify(todoView).showAllTags(Collections.emptyList());
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -179,6 +181,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).deleteTag(tag);
 		inOrder.verify(todoView).tagDeleted(tag);
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -214,6 +217,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).addTagToTask(task.getId(), tag.getId());
 		inOrder.verify(todoView).tagAddedToTask(tag);
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -269,6 +273,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).removeTagFromTask(task.getId(), tag.getId());
 		inOrder.verify(todoView).tagRemovedFromTask(tag);
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -290,7 +295,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoView).taskError("No task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testTagRemovalFromTaskExceptionTag() {
 		// Setup phase
@@ -310,7 +315,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testSuccessfulTaskRemovalFromTag() {
 		// Setup phase
@@ -324,6 +329,7 @@ public class TodoControllerTest {
 		InOrder inOrder = inOrder(todoService, todoView);
 		inOrder.verify(todoService).removeTaskFromTag(tag.getId(), task.getId());
 		inOrder.verify(todoView).taskRemovedFromTag(task);
+		inOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -345,7 +351,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoView).taskError("No task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testTaskRemovalFromTagExceptionTag() {
 		// Setup phase
@@ -365,7 +371,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoView).tagError("No tag with ID " + tag.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testRetrieveTagsAssociatedToTask() {
 		// Setup phase
@@ -384,7 +390,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoView).showTaskTags(Collections.singletonList(new Tag("1", "Work")));
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testRetrieveTagsAssociatedToTaskException() {
 		// Setup phase
@@ -403,7 +409,7 @@ public class TodoControllerTest {
 		inOrder.verify(todoView).taskError("No task with ID " + task.getId());
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testRetrieveTasksAssociatedToTag() {
 		// Setup phase
@@ -424,7 +430,7 @@ public class TodoControllerTest {
 				);
 		inOrder.verifyNoMoreInteractions();
 	}
-	
+
 	@Test
 	public void testRetrieveTasksAssociatedToTagException() {
 		// Setup phase
