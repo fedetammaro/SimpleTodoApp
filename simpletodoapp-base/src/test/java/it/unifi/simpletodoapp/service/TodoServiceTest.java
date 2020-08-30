@@ -82,7 +82,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		List<Task> retrievedTasks = todoService.getAllTasks();
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository);
 		inOrder.verify(transactionManager).doTaskTransaction(any());
 		inOrder.verify(taskRepository).findAll(clientSession);
@@ -102,7 +102,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		Task retrievedTask = todoService.findTaskById(task.getId());
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository);
 		inOrder.verify(transactionManager).doTaskTransaction(any());
 		inOrder.verify(taskRepository).findById(task.getId(), clientSession);
@@ -120,7 +120,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.saveTask(task);
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository);
 		inOrder.verify(transactionManager).doTaskTransaction(any());
 		inOrder.verify(taskRepository).save(task, clientSession);
@@ -154,7 +154,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.deleteTask(task);
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(taskRepository).getTagsByTaskId(task.getId(), clientSession);
@@ -191,7 +191,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		List<Tag> retrievedTags = todoService.getAllTags();
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, tagRepository);
 		inOrder.verify(transactionManager).doTagTransaction(any());
 		inOrder.verify(tagRepository).findAll(clientSession);
@@ -211,7 +211,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		Tag retrievedTag = todoService.findTagById(tag.getId());
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, tagRepository);
 		inOrder.verify(transactionManager).doTagTransaction(any());
 		inOrder.verify(tagRepository).findById(tag.getId(), clientSession);
@@ -233,7 +233,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.saveTag(tag);
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, tagRepository);
 		inOrder.verify(transactionManager).doTagTransaction(any());
 		inOrder.verify(tagRepository).save(tag, clientSession);
@@ -286,7 +286,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.saveTag(tag);
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, tagRepository);
 		inOrder.verify(transactionManager).doTagTransaction(any());
 		inOrder.verify(tagRepository).save(tag, clientSession);
@@ -305,7 +305,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.deleteTag(tag);
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(tagRepository).getTasksByTagId(tag.getId(), clientSession);
@@ -342,7 +342,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		List<String> retrievedTasks = todoService.findTasksByTagId(tag.getId());
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, tagRepository);
 		inOrder.verify(transactionManager).doTagTransaction(any());
 		inOrder.verify(tagRepository).getTasksByTagId(tag.getId(), clientSession);
@@ -364,6 +364,7 @@ public class TodoServiceTest {
 				() -> todoService.findTasksByTagId(tagId));
 		assertThat(exception.getMessage())
 		.isEqualTo("No tag with ID " + tagId);
+		verify(tagRepository, never()).getTasksByTagId(tagId, clientSession);
 	}
 
 	@Test
@@ -379,7 +380,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		List<String> retrievedTags = todoService.findTagsByTaskId(task.getId());
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository);
 		inOrder.verify(transactionManager).doTaskTransaction(any());
 		inOrder.verify(taskRepository).getTagsByTaskId(task.getId(), clientSession);
@@ -388,7 +389,7 @@ public class TodoServiceTest {
 		assertThat(tags)
 		.isEqualTo(retrievedTags);
 	}
-	
+
 	@Test
 	public void testFindTagsByTaskIdWhenTaskNonExistent() {
 		// Setup phase
@@ -401,6 +402,7 @@ public class TodoServiceTest {
 				() -> todoService.findTagsByTaskId(taskId));
 		assertThat(exception.getMessage())
 		.isEqualTo("No task with ID " + taskId);
+		verify(taskRepository, never()).getTagsByTaskId(taskId, clientSession);
 	}
 
 	@Test
@@ -418,7 +420,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.addTagToTask(task.getId(), tag.getId());
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(taskRepository).addTagToTask(task.getId(), tag.getId(), clientSession);
@@ -441,7 +443,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.addTagToTask(task.getId(), tag.getId());
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(taskRepository).addTagToTask(task.getId(), tag.getId(), clientSession);
@@ -524,7 +526,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.removeTagFromTask(task.getId(), tag.getId());
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(taskRepository).removeTagFromTask(task.getId(), tag.getId(), clientSession);
@@ -607,7 +609,7 @@ public class TodoServiceTest {
 		// Exercise phase
 		todoService.removeTaskFromTag(task.getId(), tag.getId());
 
-		// Verify phase
+		// Verify phase: we also verify the order of the invocation
 		InOrder inOrder = inOrder(transactionManager, taskRepository, tagRepository);
 		inOrder.verify(transactionManager).doCompositeTransaction(any());
 		inOrder.verify(taskRepository).removeTagFromTask(task.getId(), tag.getId(), clientSession);

@@ -37,27 +37,27 @@ public class TodoServiceTransactionsIT {
 	private static final String DB_NAME = "todoapp";
 	private static final String TASKS_COLLECTION = "tasks";
 	private static final String TAGS_COLLECTION = "tags";
-	
+
 	private TodoService todoService;
 	private TransactionManagerMongo transactionManagerMongo;
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
-	
+
 	private MongoClient mongoClient;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
-	
+
 	@ClassRule
 	public static final MongoDBContainer mongoContainer = new MongoDBContainer()
 	.withExposedPorts(MONGO_PORT);
-	
+
 	@BeforeClass
 	public static void setupMongoLogger() {
 		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 		Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
 		rootLogger.setLevel(Level.INFO);
 	}
-	
+
 	@Before
 	public void setup() {
 		/* Creates the mongo client by connecting it to the mongodb instance, both
@@ -65,11 +65,11 @@ public class TodoServiceTransactionsIT {
 		 * the database before each test */
 		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
 		mongoClient = MongoClients.create(mongoRsUrl);
-		
+
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
 		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
-		
+
 		todoService = new TodoService(transactionManagerMongo);
 
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
@@ -80,21 +80,21 @@ public class TodoServiceTransactionsIT {
 		taskCollection = database.getCollection(TASKS_COLLECTION);
 		tagCollection = database.getCollection(TAGS_COLLECTION);
 	}
-	
+
 	@After
 	public void tearDown() {
 		/* Close the client connection after each test so that it can
 		 * be created anew in the next test */
 		mongoClient.close();
 	}
-	
+
 
 	@AfterClass
 	public static void stopContainer() {
 		// Stops the container after all methods have been executed
 		mongoContainer.stop();
 	}
-	
+
 	@Test
 	public void testGetAllTasks() {
 		// Setup phase
@@ -105,11 +105,11 @@ public class TodoServiceTransactionsIT {
 
 		// Exercise phase
 		List<Task> retrievedTasks = todoService.getAllTasks();
-		
+
 		// Verify phase
 		assertThat(retrievedTasks).containsExactly(firstTask, secondTask);
 	}
-	
+
 	@Test
 	public void testFindTaskById() {
 		// Setup phase
@@ -124,7 +124,7 @@ public class TodoServiceTransactionsIT {
 		// Verify phase
 		assertThat(retrievedTask).isEqualTo(firstTask);
 	}
-	
+
 	@Test
 	public void testSaveTask() {
 		// Setup phase
@@ -136,7 +136,7 @@ public class TodoServiceTransactionsIT {
 		// Verify phase
 		assertThat(getAllTasksFromDatabase()).containsExactly(task);
 	}
-	
+
 	@Test
 	public void testDeleteTask() {
 		// Setup phase
@@ -149,7 +149,7 @@ public class TodoServiceTransactionsIT {
 		// Verify phase
 		assertThat(getAllTasksFromDatabase()).isEmpty();
 	}
-	
+
 	@Test
 	public void testGetAllTags() {
 		// Setup phase
@@ -164,7 +164,7 @@ public class TodoServiceTransactionsIT {
 		// Verify phase
 		assertThat(retrievedTags).containsExactly(firstTag, secondTag);
 	}
-	
+
 	@Test
 	public void testFindTagById() {
 		// Setup phase
@@ -179,7 +179,7 @@ public class TodoServiceTransactionsIT {
 		// Verify phase
 		assertThat(retrievedTag).isEqualTo(firstTag);
 	}
-	
+
 	@Test
 	public void testSaveTag() {
 		// Setup phase
@@ -191,7 +191,7 @@ public class TodoServiceTransactionsIT {
 		// Verify phase
 		assertThat(getAllTagsFromDatabase()).containsExactly(tag);
 	}
-	
+
 	@Test
 	public void testDeleteTag() {
 		// Setup phase
@@ -204,7 +204,7 @@ public class TodoServiceTransactionsIT {
 		// Verify phase
 		assertThat(getAllTagsFromDatabase()).isEmpty();
 	}
-	
+
 	@Test
 	public void testAddTagToTask() {
 		// Setup phase
@@ -220,7 +220,7 @@ public class TodoServiceTransactionsIT {
 		assertThat(getTagsAssignedToTask(task)).containsExactly(tag.getId());
 		assertThat(getTasksAssignedToTag(tag)).containsExactly(task.getId());
 	}
-	
+
 	@Test
 	public void testFindTagsByTaskId() {
 		// Setup phase
@@ -235,7 +235,7 @@ public class TodoServiceTransactionsIT {
 		// Verify phase
 		assertThat(retrievedTags).containsExactly("1");
 	}
-	
+
 	@Test
 	public void testRemoveTagFromTask() {
 		// Setup phase
@@ -251,7 +251,7 @@ public class TodoServiceTransactionsIT {
 		assertThat(getTagsAssignedToTask(task)).isEmpty();
 		assertThat(getTasksAssignedToTag(tag)).isEmpty();
 	}
-	
+
 	@Test
 	public void testFindTasksByTagId() {
 		// Setup phase
@@ -259,14 +259,14 @@ public class TodoServiceTransactionsIT {
 		Tag tag = new Tag("1", "Work");
 		addTaskToCollection(task, Collections.singletonList(tag.getId()));
 		addTagToCollection(tag, Collections.singletonList(task.getId()));
-		
+
 		// Exercise phase
 		List<String> retrievedTasks = todoService.findTasksByTagId(tag.getId());
 
 		// Verify phase
 		assertThat(retrievedTasks).containsExactly("1");
 	}
-	
+
 	private void addTaskToCollection(Task task, List<String> tags) {
 		// Private method to directly insert a task in the collection
 		taskCollection.insertOne(new Document()
