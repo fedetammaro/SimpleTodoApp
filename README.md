@@ -22,7 +22,7 @@ Here are the links for the [full project report](https://drive.google.com/file/d
 
 A GitHub repository is also required for Continuous Integration on GitHub Workflows, if you want to execute remotely tests, code coverage with Coveralls and code quality analysis with SonarCloud; otherwise, all tests, mutation testing and JaCoCo code coverage can also be executed locally during the Maven build. To execute code quality analysis locally, a [SonarQube](https://www.sonarqube.org/downloads/) installation is required and the plugin must be configured accordingly (more details on the [official documentation](https://docs.sonarqube.org/latest/)).
 
-### How to setup a MongoDB docker container with a replica set (mandatory to test the application as standalone)
+### How to setup a MongoDB docker container with a replica set (mandatory to try the application as standalone)
 Since a MongoDB database with transactions support is **required** to try the application, here are the steps needed to setup a working MongoDB instance with its replica set, implying Docker and Docker Compose are already installed.
 
  1. `docker pull mongo:latest` to download the latest MongoDB docker image
