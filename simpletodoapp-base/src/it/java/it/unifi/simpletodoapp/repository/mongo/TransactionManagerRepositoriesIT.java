@@ -119,10 +119,12 @@ public class TransactionManagerRepositoriesIT {
 				() -> transactionManagerMongo.doTaskTransaction(
 						(taskMongoRepository, clientSession) -> {
 							taskMongoRepository.save(task, clientSession);
-							return null;
+							throw new MongoException("Task transaction failed, aborting");
 						}));
 		assertThat(exception.getMessage())
 		.isEqualTo("Task transaction failed, aborting");
+		assertThat(getAllTasksFromDatabase())
+		.isEmpty();
 	}
 
 	@Test
@@ -145,7 +147,6 @@ public class TransactionManagerRepositoriesIT {
 	@Test
 	public void testTagTransactionAbortedThrowsMongoException() {
 		// Setup phase
-		mongoDatabase.drop();
 		Tag tag = new Tag("1", "Work");
 
 		// Exercise and verify phases
@@ -153,10 +154,12 @@ public class TransactionManagerRepositoriesIT {
 				() -> transactionManagerMongo.doTagTransaction(
 						(tagMongoRepository, clientSession) -> {
 							tagMongoRepository.save(tag, clientSession);
-							return null;
+							throw new MongoException("Tag transaction failed, aborting");
 						}));
 		assertThat(exception.getMessage())
 		.isEqualTo("Tag transaction failed, aborting");
+		assertThat(getAllTagsFromDatabase())
+		.isEmpty();
 	}
 
 	@Test
@@ -186,7 +189,6 @@ public class TransactionManagerRepositoriesIT {
 	@Test
 	public void testCompositeTransactionAbortedThrowsMongoException() {
 		// Setup phase
-		mongoDatabase.drop();
 		Task task = new Task("1", "Start using TDD");
 		Tag tag = new Tag("1", "Work");
 
@@ -196,10 +198,14 @@ public class TransactionManagerRepositoriesIT {
 						(taskMongoRepository, tagMongoRepository, clientSession) -> {
 							taskMongoRepository.save(task, clientSession);
 							tagMongoRepository.save(tag, clientSession);
-							return null;
+							throw new MongoException("Composite transaction failed, aborting");
 						}));
 		assertThat(exception.getMessage())
 		.isEqualTo("Composite transaction failed, aborting");
+		assertThat(getAllTasksFromDatabase())
+		.isEmpty();
+		assertThat(getAllTagsFromDatabase())
+		.isEmpty();
 	}
 
 	private List<Task> getAllTasksFromDatabase() {
