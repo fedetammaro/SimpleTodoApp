@@ -15,11 +15,10 @@ public class TransactionManagerMongo implements TransactionManager {
 	private TaskMongoRepository taskMongoRepository;
 	private TagMongoRepository tagMongoRepository;
 
-	public TransactionManagerMongo(MongoClient mongoClient, TaskMongoRepository taskMongoRepository,
-			TagMongoRepository tagMongoRepository) {
+	public TransactionManagerMongo(MongoClient mongoClient, String dbName, String tasksCollection, String tagsCollection) {
 		this.mongoClient = mongoClient;
-		this.taskMongoRepository = taskMongoRepository;
-		this.tagMongoRepository = tagMongoRepository;
+		this.taskMongoRepository = new TaskMongoRepository(mongoClient, dbName, tasksCollection);
+		this.tagMongoRepository = new TagMongoRepository(mongoClient, dbName, tagsCollection);
 	}
 
 	@Override

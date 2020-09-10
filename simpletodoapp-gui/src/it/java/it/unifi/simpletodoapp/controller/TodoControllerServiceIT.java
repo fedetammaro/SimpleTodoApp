@@ -31,8 +31,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import it.unifi.simpletodoapp.model.Tag;
 import it.unifi.simpletodoapp.model.Task;
-import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
-import it.unifi.simpletodoapp.repository.mongo.TaskMongoRepository;
 import it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo;
 import it.unifi.simpletodoapp.service.TodoService;
 import it.unifi.simpletodoapp.view.swing.TodoSwingView;
@@ -51,8 +49,6 @@ public class TodoControllerServiceIT {
 	private TodoSwingView todoSwingView;
 
 	private MongoClient mongoClient;
-	private TaskMongoRepository taskMongoRepository;
-	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
 
@@ -77,10 +73,7 @@ public class TodoControllerServiceIT {
 		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
 		mongoClient = MongoClients.create(mongoRsUrl);
 
-		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
-		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
-
-		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
+		transactionManagerMongo = new TransactionManagerMongo(mongoClient, DB_NAME, TASKS_COLLECTION, TAGS_COLLECTION);
 		todoService = new TodoService(transactionManagerMongo);
 		todoController = new TodoController(todoService, todoSwingView);
 

@@ -78,7 +78,7 @@ public class TodoSwingViewControllerIT extends AssertJSwingJUnitTestCase {
 
 		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
 		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
-		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
+		transactionManagerMongo = new TransactionManagerMongo(mongoClient, DB_NAME, TASKS_COLLECTION, TAGS_COLLECTION);
 
 		MongoDatabase database = mongoClient.getDatabase(DB_NAME);
 

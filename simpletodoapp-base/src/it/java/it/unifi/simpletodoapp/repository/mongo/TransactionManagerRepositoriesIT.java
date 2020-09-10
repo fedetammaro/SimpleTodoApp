@@ -44,8 +44,6 @@ public class TransactionManagerRepositoriesIT {
 
 	private MongoClient mongoClient;
 	private MongoDatabase mongoDatabase;
-	private TaskMongoRepository taskMongoRepository;
-	private TagMongoRepository tagMongoRepository;
 	private MongoCollection<Document> taskCollection;
 	private MongoCollection<Document> tagCollection;
 
@@ -64,10 +62,7 @@ public class TransactionManagerRepositoriesIT {
 		String mongoRsUrl = mongoContainer.getReplicaSetUrl();
 		mongoClient = MongoClients.create(mongoRsUrl);
 
-		taskMongoRepository = new TaskMongoRepository(mongoClient, DB_NAME, TASKS_COLLECTION);
-		tagMongoRepository = new TagMongoRepository(mongoClient, DB_NAME, TAGS_COLLECTION);
-
-		transactionManagerMongo = new TransactionManagerMongo(mongoClient, taskMongoRepository, tagMongoRepository);
+		transactionManagerMongo = new TransactionManagerMongo(mongoClient, DB_NAME, TASKS_COLLECTION, TAGS_COLLECTION);
 
 		mongoDatabase = mongoClient.getDatabase(DB_NAME);
 

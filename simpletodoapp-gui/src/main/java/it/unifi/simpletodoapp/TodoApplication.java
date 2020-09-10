@@ -7,8 +7,6 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
 import it.unifi.simpletodoapp.controller.TodoController;
-import it.unifi.simpletodoapp.repository.mongo.TagMongoRepository;
-import it.unifi.simpletodoapp.repository.mongo.TaskMongoRepository;
 import it.unifi.simpletodoapp.repository.mongo.TransactionManagerMongo;
 import it.unifi.simpletodoapp.service.TodoService;
 import it.unifi.simpletodoapp.view.swing.TodoSwingView;
@@ -38,12 +36,8 @@ public class TodoApplication implements Callable<Void> {
 	public Void call() throws Exception {
 		EventQueue.invokeLater(() -> {
 			MongoClient mongoClient = MongoClients.create(mongoReplicaUrl);
-			TaskMongoRepository taskRepository = 
-					new TaskMongoRepository(mongoClient, dbName, tasksCollection);
-			TagMongoRepository tagRepository =
-					new TagMongoRepository(mongoClient, dbName, tagsCollection);
 			TransactionManagerMongo transactionManagerMongo = 
-					new TransactionManagerMongo(mongoClient, taskRepository, tagRepository);
+					new TransactionManagerMongo(mongoClient, dbName, tasksCollection, tagsCollection);
 			TodoService todoService = new TodoService(transactionManagerMongo);
 			TodoSwingView todoSwingView = new TodoSwingView();
 			TodoController todoController = new TodoController(todoService, todoSwingView);
