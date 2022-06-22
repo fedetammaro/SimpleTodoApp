@@ -20,7 +20,7 @@
 		<sonar.version>3.7.0.1746</sonar.version>
 		<coveralls.version>4.3.0</coveralls.version>
 		<pitest.version>1.5.2</pitest.version>
-		<mongodriver.version>3.12.6</mongodriver.version>
+		<mongodriver.version>3.12.8</mongodriver.version>
 		<logback.version>1.2.3</logback.version>
 		<assertj-swing.version>3.9.2</assertj-swing.version>
 		<testcontainers.version>1.14.3</testcontainers.version>
