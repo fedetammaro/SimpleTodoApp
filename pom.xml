@@ -21,7 +21,7 @@
 		<coveralls.version>4.3.0</coveralls.version>
 		<pitest.version>1.5.2</pitest.version>
 		<mongodriver.version>3.12.6</mongodriver.version>
-		<logback.version>1.2.3</logback.version>
+		<logback.version>1.2.13</logback.version>
 		<assertj-swing.version>3.9.2</assertj-swing.version>
 		<testcontainers.version>1.14.3</testcontainers.version>
 		<picocli.version>4.4.0</picocli.version>
